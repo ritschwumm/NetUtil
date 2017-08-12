@@ -650,6 +650,7 @@ implements OSCChannel
 				if( dch == null ) {
 					final DatagramChannel newCh = DatagramChannel.open();
 					newCh.socket().bind( localAddress );
+					newCh.socket().setBroadcast( true );
 					dch = newCh;
 				}
 			}
