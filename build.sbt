@@ -1,5 +1,5 @@
 name             := "NetUtil"
-version          := "1.0.1"
+version          := "1.0.2-SNAPSHOT"
 organization     := "de.sciss"
 description      := "A Java library for sending and receiving messages using the OpenSoundControl (OSC) protocol"
 homepage         := Some(url(s"https://github.com/Sciss/${name.value}"))
