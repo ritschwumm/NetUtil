@@ -1,21 +1,12 @@
 name             := "NetUtil"
-
-version          := "1.0.1-SNAPSHOT"
-
+version          := "1.0.1"
 organization     := "de.sciss"
-
 description      := "A Java library for sending and receiving messages using the OpenSoundControl (OSC) protocol"
-
 homepage         := Some(url(s"https://github.com/Sciss/${name.value}"))
-
 licenses         := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt"))
-
-scalaVersion     := "2.11.7"
-
+scalaVersion     := "2.11.11"  // this is just a Java only project; use Scala 2.11 so we can compile under Java 6
 crossPaths       := false      // this is just a Java only project
-
 autoScalaLibrary := false      // this is just a Java only project
-
 retrieveManaged  := true
 
 // we are using Scala for testing only
