@@ -38,6 +38,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
@@ -650,6 +651,19 @@ implements OSCChannel
 				if( dch == null ) {
 					final DatagramChannel newCh = DatagramChannel.open();
 					newCh.socket().bind( localAddress );
+
+					// Some systems, explicitly Android 7, don't enable SO_BROADCAST by default
+					// for sockets created by DatagramChannel.open(). SO_BROADCAST is needed for
+					// sending a message to a broadcast address.
+                                        // We check if it's enabled and  try to set it manually if otherwise.
+					if (!newCh.socket().getBroadcast()) {
+						try {
+							newCh.socket().setBroadcast( true );
+						} catch ( SocketException e ) {
+							// No further action required.
+							// We just can't send broadcast messages.
+						}
+					}
 					dch = newCh;
 				}
 			}
