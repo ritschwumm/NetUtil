@@ -12,7 +12,7 @@ For project status, API and current version, visit [github.com/Sciss/NetUtil](ht
 
 Note that this project is not actively developed any more (unless there are bugs to fix). For a current OSC library in the Scala programming language, please visit [github.com/Sciss/ScalaOSC](https://github.com/Sciss/ScalaOSC).
 
-## requirements / building
+## requirements / building
 
 NetUtil requires Java 1.4+. NetUtil has also been successfuly running on Android. It uses [sbt](http://sbt.github.com/) 0.13 for building. You can use the included `sbt` shell script if you do not want to install sbt.
 
@@ -68,7 +68,7 @@ Here is some sporadic list of projects which seem to use NetUtil. if you want to
 - [AMICO](http://amico.sourceforge.net/)
 - [Protocoder](http://www.protocoder.org/)
 
-## to-do / known issues
+## to-do / known issues
 
 - add special client and server listeners so one can detect channels/connections opening and closing
 - add helper classes (multi-server wrapper, message deferrer)
