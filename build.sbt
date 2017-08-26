@@ -7,7 +7,6 @@ licenses         := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.
 scalaVersion     := "2.11.11"  // this is just a Java only project; use Scala 2.11 so we can compile under Java 6
 crossPaths       := false      // this is just a Java only project
 autoScalaLibrary := false      // this is just a Java only project
-retrieveManaged  := true
 
 // we are using Scala for testing only
 libraryDependencies += "org.scala-lang" % "scala-library" % scalaVersion.value % "test"
