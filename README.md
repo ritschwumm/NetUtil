@@ -1,6 +1,5 @@
 # NetUtil
 
-[![Flattr this](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=sciss&url=https%3A%2F%2Fgithub.com%2FSciss%2FNetUtil&title=NetUtil%20OSC%20Library&language=Java&tags=github&category=software)
 [![Build Status](https://travis-ci.org/Sciss/NetUtil.svg?branch=master)](https://travis-ci.org/Sciss/NetUtil)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/de.sciss/netutil/badge.svg)](https://maven-badges.herokuapp.com/maven-central/de.sciss/netutil)
 
@@ -28,7 +27,7 @@ To use NetUtil in your project, you can link to the following [Maven](http://sea
 
 Or when using sbt
 
-    "de.sciss" % "netutil" % "1.0.1"
+    "de.sciss" % "netutil" % "1.0.2"
 
 ## contributing
 
