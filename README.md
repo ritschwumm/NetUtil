@@ -5,15 +5,15 @@
 
 ## statement
 
-NetUtil is a compact and efficient Java library for sending and receiving messages using the OpenSoundControl (OSC) protocol. It is (C)opyright 2004&ndash;2017 by Hanns Holger Rutz. All rights reserved. NetUtil is released under the [GNU Lesser General Public License](https://raw.github.com/Sciss/NetUtil/master/LICENSE) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+NetUtil is a compact and efficient Java library for sending and receiving messages using the OpenSoundControl (OSC) protocol. It is (C)opyright 2004&ndash;2018 by Hanns Holger Rutz. All rights reserved. NetUtil is released under the [GNU Lesser General Public License](https://raw.github.com/Sciss/NetUtil/master/LICENSE) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
-For project status, API and current version, visit [github.com/Sciss/NetUtil](https://github.com/Sciss/NetUtil).
+For project status, API and current version, visit [git.iem.at/sciss/NetUtil](https://git.iem.at/sciss/NetUtil).
 
-Note that this project is not actively developed any more (unless there are bugs to fix). For a current OSC library in the Scala programming language, please visit [github.com/Sciss/ScalaOSC](https://github.com/Sciss/ScalaOSC).
+Note that this project is not actively developed any more (unless there are bugs to fix). For a current OSC library in the Scala programming language, please visit [git.iem.at/sciss/ScalaOSC](https://git.iem.at/sciss/ScalaOSC).
 
 ## requirements / building
 
-NetUtil requires Java 1.4+. NetUtil has also been successfuly running on Android. It uses [sbt](http://sbt.github.com/) 0.13 for building. You can use the included `sbt` shell script if you do not want to install sbt.
+NetUtil requires Java 1.6+. NetUtil has also been successfuly running on Android. It uses [sbt](https://www.scala-sbt.org/) for building. You can use the included `sbt` shell script if you do not want to install sbt. This script is written by Paul Phillips, and released under a [BSD style license](https://github.com/paulp/sbt-extras/blob/master/LICENSE.txt).
 
 To compile `sbt compile`, to generate a jar `sbt package`.
 
@@ -23,11 +23,11 @@ To use NetUtil in your project, you can link to the following [Maven](http://sea
 
     GroupId: de.sciss
     ArtifactId: netutil
-    Version: 1.0.1
+    Version: 1.0.3
 
 Or when using sbt
 
-    "de.sciss" % "netutil" % "1.0.2"
+    "de.sciss" % "netutil" % "1.0.3"
 
 ## contributing
 
@@ -50,6 +50,8 @@ This will print to available options. E.g.
     > run --testPingPong
 
 ## noteworthy links
+
+__Note:__ This list is very old and not maintained.
 
 - [www.opensoundcontrol.org](http://www.opensoundcontrol.org) &ndash; information about OSC specifications and implementations
 - [Illposed JavaOSC](http://www.illposed.com/software/javaosc.html) &ndash; another OSC library for Java
