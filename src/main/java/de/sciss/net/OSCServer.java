@@ -46,6 +46,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *	This class dynamically groups together a transmitters and receivers, allowing bidirectional
@@ -814,21 +816,21 @@ implements OSCBidi
 							}
 						}
 						catch( InterruptedException e2 ) {
-							System.err.println( e2.getLocalizedMessage() );
+							Logger.getLogger("").log(Level.WARNING,"",e2);
 						}
 						catch( IOException e1 ) {
-							System.err.println( "TCPServerBody.stopListening : "+e1 );
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 							throw e1;
 						}
 						finally {
 //							guard = null;
 							if( (thread != null) && thread.isAlive() ) {
 								try {
-									System.err.println( "TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")" );
+									Logger.getLogger("").log(Level.WARNING,"TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")");
 									ssch.close();     // rude task killing
 								}
 								catch( IOException e3 ) {
-									System.err.println( "TCPServerBody.stopListening 2: "+e3 );
+									Logger.getLogger("").log(Level.SEVERE,"TCPServerBody.stopListening 2: ",e3);
 								}
 							}
 							thread = null;
@@ -969,13 +971,13 @@ listen:			while( isListening )
 					}
 					catch( ClosedChannelException e11 ) {	// bye bye, we have to quit
 						if( isListening ) {
-							System.err.println( e11 );
+							Logger.getLogger("").log(Level.WARNING,"",e11);
 						}
 						return;
 					}
 					catch( IOException e1 ) {
 						if( isListening ) {
-							System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 						}
 					}
 				} // while( isListening )
