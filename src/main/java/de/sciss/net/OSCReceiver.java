@@ -1020,7 +1020,9 @@ implements OSCChannel, Runnable
 //					dch = newCh;
 					setChannel( newCh );
 				}
-				connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
+				for(OSCConnectionListener l : connListeners) {
+					l.onConnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 
@@ -1086,7 +1088,9 @@ listen:			while( isListening )
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
-				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
+				for(OSCConnectionListener l : connListeners) {
+					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 		
@@ -1174,7 +1178,9 @@ listen:			while( isListening )
 				if( !sch.isConnected() ) {
 					sch.connect( target );
 				}
-				connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
+				for(OSCConnectionListener l : connListeners) {
+					l.onConnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 
@@ -1195,7 +1201,9 @@ listen:			while( isListening )
 				finally {
 					sch = null;
 				}
-				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
+				for(OSCConnectionListener l : connListeners) {
+					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 
@@ -1252,7 +1260,9 @@ listen:			while( isListening ) {
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
-				connListeners.forEach(o->o.onDisconnected(localAddress, (InetSocketAddress) target));
+				for(OSCConnectionListener l : connListeners) {
+					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 

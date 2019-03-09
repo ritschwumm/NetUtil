@@ -682,7 +682,9 @@ implements OSCChannel
 						}
 					}
 					dch = newCh;
-					connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
+					for(OSCConnectionListener l : connListeners) {
+						l.onDisconnected(localAddress, (InetSocketAddress) target);
+					}
 				}
 			}
 		}
@@ -703,7 +705,9 @@ implements OSCChannel
 				}
 				catch( IOException e1 ) { /* ignored */ }
 				dch = null;
-				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
+				for(OSCConnectionListener l : connListeners) {
+					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 
@@ -803,7 +807,9 @@ implements OSCChannel
 				}
 				if( !sch.isConnected() ) {
 					sch.connect( target );
-					connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
+					for(OSCConnectionListener l : connListeners) {
+						l.onConnected(localAddress, (InetSocketAddress) target);
+					}
 				}
 			}
 		}
@@ -832,7 +838,9 @@ implements OSCChannel
 					Logger.getLogger("").log(Level.SEVERE, "", e1);
 				}
 				sch = null;
-				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
+				for(OSCConnectionListener l : connListeners) {
+					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 

@@ -641,14 +641,18 @@ implements OSCBidi
 				rcv.setChannel( trns.getChannel() );
 			}
 			rcv.startListening();
-			connListeners.forEach(o->o.onConnected(localAddress, null));
+			for(OSCConnectionListener l : connListeners) {
+				l.onConnected(localAddress, null);
+			}
 		}
 
 		public void stop()
 		throws IOException
 		{
 			rcv.stopListening();
-			connListeners.forEach(o->o.onDisconnected(localAddress, null));
+			for(OSCConnectionListener l : connListeners) {
+				l.onDisconnected(localAddress, null);
+			}
 		}
 		
 		public boolean isActive()
@@ -676,7 +680,9 @@ implements OSCBidi
 		{
 			rcv.dispose();
 			trns.dispose();
-			connListeners.forEach(o->o.onDisconnected(localAddress, null));
+			for(OSCConnectionListener l : connListeners) {
+				l.onDisconnected(localAddress, null);
+			}
 		}
 
 		public void setBufferSize( int size )
@@ -998,7 +1004,9 @@ listen:			while( isListening )
 						synchronized( connSync ) {
 							InetSocketAddress local = (InetSocketAddress) sch.getLocalAddress();
 							InetSocketAddress remote = (InetSocketAddress) sch.getRemoteAddress();
-							connListeners.forEach(o->o.onConnected(local, remote));
+							for(OSCConnectionListener l : connListeners) {
+								l.onConnected(local, remote);
+							}
 							rcv		= OSCReceiver.newUsing( defaultCodec, sch );
 							rcv.setBufferSize( bufSize );
 							mapRcv.put( sender, rcv );
@@ -1007,7 +1015,9 @@ listen:			while( isListening )
 								@Override
 								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
 									mapRcv.remove(remote);
-									connListeners.forEach(o->o.onDisconnected(local, remote));
+									for(OSCConnectionListener l : connListeners) {
+										l.onDisconnected(local, remote);
+									}
 								}
 								
 								@Override
@@ -1023,7 +1033,9 @@ listen:			while( isListening )
 								@Override
 								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
 									mapTrns.remove(remote);
-									connListeners.forEach(o->o.onDisconnected(local, remote));
+									for(OSCConnectionListener l : connListeners) {
+										l.onDisconnected(local, remote);
+									}
 								}
 								
 								@Override
