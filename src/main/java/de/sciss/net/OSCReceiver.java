@@ -186,7 +186,8 @@ import java.util.logging.Logger;
 public abstract class OSCReceiver
 implements OSCChannel, Runnable
 {
-	private final List					collListeners   = new ArrayList();
+	private   final List<OSCListener>					collListeners   = new ArrayList<OSCListener>();
+	protected final List<OSCConnectionListener>         connListeners   = new ArrayList<OSCConnectionListener>();
 	protected Thread					thread			= null;
 
 //	private Map							map				= null;
@@ -618,7 +619,7 @@ implements OSCChannel, Runnable
 	public void addOSCListener( OSCListener listener )
 	{
 		synchronized( collListeners ) {
-//			if( collListeners.contains( listener )) return;
+			if( collListeners.contains( listener )) return;
 			collListeners.add( listener );
 		}
 	}
@@ -634,6 +635,18 @@ implements OSCChannel, Runnable
 	{
 		synchronized( collListeners ) {
 			collListeners.remove( listener );
+		}
+	}
+
+	public void addConnectionListener(OSCConnectionListener e) {
+		synchronized (connListeners) {
+			connListeners.add(e);
+		}
+	}
+
+	public void removeConnectionListener(OSCConnectionListener o) {
+		synchronized (connListeners) {
+			connListeners.remove(o);
 		}
 	}
 
@@ -1007,6 +1020,7 @@ implements OSCChannel, Runnable
 //					dch = newCh;
 					setChannel( newCh );
 				}
+				connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
 			}
 		}
 
@@ -1072,6 +1086,7 @@ listen:			while( isListening )
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
+				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
 			}
 		}
 		
@@ -1159,6 +1174,7 @@ listen:			while( isListening )
 				if( !sch.isConnected() ) {
 					sch.connect( target );
 				}
+				connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
 			}
 		}
 
@@ -1174,13 +1190,12 @@ listen:			while( isListening )
 		{
 			if( sch != null ) {
 				try {
-//System.err.println( "TCPOSCReceiver.closeChannel()" );
 					sch.close();
-//System.err.println( "...ok" );
 				}
 				finally {
 					sch = null;
 				}
+				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
 			}
 		}
 
@@ -1237,6 +1252,7 @@ listen:			while( isListening ) {
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
+				connListeners.forEach(o->o.onDisconnected(localAddress, (InetSocketAddress) target));
 			}
 		}
 

@@ -45,6 +45,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *  A class that sends OSC packets (messages
@@ -76,6 +80,7 @@ import java.nio.channels.SocketChannel;
 public abstract class OSCTransmitter
 implements OSCChannel
 {
+	protected final List<OSCConnectionListener>         connListeners   = new ArrayList<OSCConnectionListener>();
 	protected final Object				sync			= new Object();	// buffer (re)allocation
 	protected boolean					allocBuf		= true;
 	private int							bufSize			= DEFAULTBUFSIZE;
@@ -441,6 +446,18 @@ implements OSCChannel
 	{
 		return c;
 	}
+	
+	public void addConnectionListener(OSCConnectionListener e) {
+		synchronized (connListeners) {
+			connListeners.add(e);
+		}
+	}
+
+	public void removeConnectionListener(OSCConnectionListener o) {
+		synchronized (connListeners) {
+			connListeners.remove(o);
+		}
+	}
 
 	/**
 	 *	Establishes connection for transports requiring
@@ -665,6 +682,7 @@ implements OSCChannel
 						}
 					}
 					dch = newCh;
+					connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
 				}
 			}
 		}
@@ -685,6 +703,7 @@ implements OSCChannel
 				}
 				catch( IOException e1 ) { /* ignored */ }
 				dch = null;
+				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
 			}
 		}
 
@@ -699,7 +718,6 @@ implements OSCChannel
 		{
 			try {
 				synchronized( sync ) {
-//					if( dch == null ) throw new NotYetConnectedException();
 					if( dch == null ) throw new IOException( NetUtil.getResourceString( "errChannelNotConnected" ));
 
 					checkBuffer();
@@ -758,10 +776,10 @@ implements OSCChannel
 			}
 		}
 
-//		protected void setChannel( SelectableChannel ch )
-//		{
-//			sch	= (SocketChannel) ch;
-//		}
+		protected void setChannel( SelectableChannel ch )
+		{
+			sch	= (SocketChannel) ch;
+		}
 
 		protected SelectableChannel getChannel()
 		{
@@ -785,6 +803,7 @@ implements OSCChannel
 				}
 				if( !sch.isConnected() ) {
 					sch.connect( target );
+					connListeners.forEach(l->l.onConnected(localAddress, (InetSocketAddress) target));
 				}
 			}
 		}
@@ -807,15 +826,13 @@ implements OSCChannel
 			super.dispose();
 			if( sch != null ) {
 				try {
-//System.err.println( "TCPOSCTransmitter.closeChannel()" );
-//new IOException( "TCPOSCTransmitter.closeChannel()" ).printStackTrace();
 					sch.close();
-//System.err.println( "... ok " );
 				}
 				catch( IOException e1 ) {
-					e1.printStackTrace();
+					Logger.getLogger("").log(Level.SEVERE, "", e1);
 				}
 				sch = null;
+				connListeners.forEach(l->l.onDisconnected(localAddress, (InetSocketAddress) target));
 			}
 		}
 
@@ -824,7 +841,6 @@ implements OSCChannel
 		{
 			synchronized( sync ) {
 				if( (target != null) && !target.equals( this.target )) throw new IllegalStateException( NetUtil.getResourceString( "errNotBoundToAddress" ) + target );
-			
 				send( c, p );
 			}
 		}
@@ -836,7 +852,6 @@ implements OSCChannel
 		
 			try {
 				synchronized( sync ) {
-//					if( sch == null ) throw new NotYetConnectedException();
 					if( sch == null ) throw new IOException( NetUtil.getResourceString( "errChannelNotConnected" ));
 
 					checkBuffer();
