@@ -42,8 +42,10 @@ import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -835,13 +837,6 @@ implements OSCBidi
 								guard = SocketChannel.open();
 								guard.connect( ssch.socket().getLocalSocketAddress() );
 								guard.close();
-//								try {
-//								
-//								}
-//								finally {
-//									try { guard.close(); } catch( IOException e1 ) {}
-//								}
-//								guard.send( guardPacket );
 								threadSync.wait( 5000 );
 							}
 						}
@@ -853,7 +848,6 @@ implements OSCBidi
 							throw e1;
 						}
 						finally {
-//							guard = null;
 							if( (thread != null) && thread.isAlive() ) {
 								try {
 									Logger.getLogger("").log(Level.WARNING,"TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")");
@@ -928,12 +922,12 @@ implements OSCBidi
 		private void stopAll()
 		{
 			synchronized( connSync ) {
-				for( Iterator<OSCReceiver> iter = mapRcv.values().iterator(); iter.hasNext(); ) {
-					((OSCReceiver) iter.next()).dispose();
+				for(OSCReceiver r:new LinkedList<OSCReceiver>(mapRcv.values())) {
+					r.dispose();
 				}
 				mapRcv.clear();
-				for( Iterator<OSCTransmitter> iter = mapTrns.values().iterator(); iter.hasNext(); ) {
-					((OSCTransmitter) iter.next()).dispose();
+				for(OSCTransmitter t:new LinkedList<OSCTransmitter>(mapTrns.values())) {
+					t.dispose();
 				}
 				mapTrns.clear();
 			}

@@ -1201,9 +1201,6 @@ listen:			while( isListening )
 				finally {
 					sch = null;
 				}
-				for(OSCConnectionListener l : connListeners) {
-					l.onDisconnected(localAddress, (InetSocketAddress) target);
-				}
 			}
 		}
 
@@ -1259,9 +1256,6 @@ listen:			while( isListening ) {
 				synchronized( threadSync ) {
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
-				}
-				for(OSCConnectionListener l : connListeners) {
-					l.onDisconnected(localAddress, (InetSocketAddress) target);
 				}
 			}
 		}
