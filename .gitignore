@@ -6,3 +6,4 @@ project/boot/
 .idea_modules/
 sbt-launch.jar
 /bin/
+*.iml

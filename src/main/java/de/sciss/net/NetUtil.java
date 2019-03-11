@@ -1,30 +1,14 @@
 /*
- *  NetUtil.java
- *  de.sciss.net (NetUtil)
+ *  NetUtil.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		26-May-05	created
  */
 
 package de.sciss.net;
@@ -38,15 +22,12 @@ import de.sciss.net.test.NetUtilTest;
  *	A static class which contains information
  *	methods. In a future version it may contain
  *	more useful utility methods.
- *
- *  @author		Hanns Holger Rutz
  */
-public class NetUtil
-{
-	private static final double VERSION	= 1.0;
-	private static final ResourceBundle resBundle = ResourceBundle.getBundle( "NetUtilStrings" );
+public class NetUtil {
+	private static final String VERSION = "1.1.0";
+	private static final ResourceBundle resBundle = ResourceBundle.getBundle("NetUtilStrings");
 
-    private NetUtil() { /* empty */ }
+	private NetUtil() { /* empty */ }
 
 	/**
 	 *	This method gets called when one tries
@@ -54,39 +35,38 @@ public class NetUtil
 	 *	It prints copyright information and
 	 *	quits. It also offers to run some built-in tests.
 	 */
-    public static void main( String args[] )
-	{
-		boolean testo = false;
-	
-		if( args.length == 1 ) {
-			if( args[ 0 ].equals( "--testTCPClient" )) {
-				testo	= true;
-				NetUtilTest.client( OSCChannel.TCP );
-			} else if( args[ 0 ].equals( "--testUDPClient" )) {
-				testo	= true;
-				NetUtilTest.client( OSCChannel.UDP );
-			} else if( args[ 0 ].equals( "--testTCPServer" )) {
-				testo	= true;
-				NetUtilTest.server( OSCChannel.TCP );
-			} else if( args[ 0 ].equals( "--testUDPServer" )) {
-				testo	= true;
-				NetUtilTest.server( OSCChannel.UDP );
-			} else if( args[ 0 ].equals( "--testCodecSpeed" )) {
-				testo	= true;
+	public static void main(String[] args) {
+		boolean hasChoice = false;
+
+		if (args.length == 1) {
+			if (args[0].equals("--testTCPClient")) {
+				hasChoice = true;
+				NetUtilTest.client(OSCChannel.TCP);
+			} else if (args[0].equals("--testUDPClient")) {
+				hasChoice = true;
+				NetUtilTest.client(OSCChannel.UDP);
+			} else if (args[0].equals("--testTCPServer")) {
+				hasChoice = true;
+				NetUtilTest.server(OSCChannel.TCP);
+			} else if (args[0].equals("--testUDPServer")) {
+				hasChoice = true;
+				NetUtilTest.server(OSCChannel.UDP);
+			} else if (args[0].equals("--testCodecSpeed")) {
+				hasChoice = true;
 				NetUtilTest.codecSpeed();
-			} else if( args[ 0 ].equals( "--testPingPong" )) {
-				testo	= true;
+			} else if (args[0].equals("--testPingPong")) {
+				hasChoice = true;
 				NetUtilTest.pingPong();
 			}
 		}
 
-		if( !testo ) {
-			System.err.println( "\nNetUtil v" + VERSION + "\n" +
+		if (!hasChoice) {
+			System.err.println("\nNetUtil v" + VERSION + "\n" +
 				getCopyrightString() + "\n\n" +
 				getCreditsString() + "\n\n  " +
 				getResourceString( "errIsALibrary" ));
 
-			System.out.println( "\nThe following demos are available:\n" +
+			System.out.println("\nThe following demos are available:\n" +
 				"  --testTCPClient\n" +
 				"  --testUDPClient\n" +
 				"  --testTCPServer\n" +
@@ -94,7 +74,7 @@ public class NetUtil
 				"  --testCodecSpeed\n" +
 				"  --testPingPong\n"
 			);
-			System.exit( 1 );
+			System.exit(1);
 		}
     }
 	
@@ -103,8 +83,7 @@ public class NetUtil
 	 *
 	 *	@return	the current version of NetUtil
 	 */
-	public static final double getVersion()
-	{
+	public static String getVersion() {
 		return VERSION;
 	}
 
@@ -115,9 +94,8 @@ public class NetUtil
 	 *	@return	text string which can be displayed
 	 *			in an about box
 	 */
-	public static final String getCopyrightString()
-	{
-		return NetUtil.getResourceString( "copyright" );
+	public static String getCopyrightString() {
+		return NetUtil.getResourceString("copyright");
 	}
 
 	/**
@@ -127,9 +105,8 @@ public class NetUtil
 	 *	@return	text string which can be displayed
 	 *			in an about box
 	 */
-	public static final String getCreditsString()
-	{
-		return NetUtil.getResourceString( "credits" );
+	public static String getCreditsString() {
+		return NetUtil.getResourceString("credits");
 	}
 
 	/**
@@ -144,13 +121,11 @@ public class NetUtil
 	 *			the given key or placeholder string if
 	 *			the resource wasn't found
 	 */
-	public static final String getResourceString( String key )
-	{
+	public static String getResourceString(String key) {
 		try {
-			return resBundle.getString( key );
-		}
-		catch( MissingResourceException e1 ) {
-			return( "[Missing Resource: " + key + "]" );
+			return resBundle.getString(key);
+		} catch (MissingResourceException e1) {
+			return ("[Missing Resource: " + key + "]");
 		}
 	}
 }

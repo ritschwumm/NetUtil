@@ -3,7 +3,7 @@ def basicJavaOpts = Seq("-source", "1.6")
 lazy val root = project.withId("netutil").in(file("."))
   .settings(
     name             := "NetUtil",
-    version          := "1.0.3",
+    version          := "1.1.0-SNAPSHOT",
     organization     := "de.sciss",
     description      := "A Java library for sending and receiving messages using the OpenSoundControl (OSC) protocol",
     homepage         := Some(url(s"https://git.iem.at/sciss/${name.value}")),

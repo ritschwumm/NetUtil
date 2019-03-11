@@ -1,32 +1,14 @@
 /*
- *  OSCChannel.java
- *  de.sciss.net (NetUtil)
+ *  OSCChannel.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		26-Aug-05	created
- *		30-Sep-06	renamed from AbstractOSCCommunicator to OSCChannel, now an interface
- *		02-Jul-07	added setCodec, getCodec
  */
 
 package de.sciss.net;
@@ -43,11 +25,6 @@ import java.net.InetSocketAddress;
  *	The method for getting a socket's <code>DatagramChannel</code> has been removed in the course of TCP integration, also with
  *	keeping in mind the possible future integration of other channel types such as <code>FileChannel</code>
  *	or <code>PipeChannel</code>.
- *
- *  @author		Hanns Holger Rutz
- *  @version	0.37, 12-May-09
- *
- *	@since		NetUtil 0.30
  */
 public interface OSCChannel
 {
@@ -61,16 +38,6 @@ public interface OSCChannel
 	 *	<A HREF="http://en.wikipedia.org/wiki/Transmission_Control_Protocol">en.wikipedia.org/wiki/Transmission_Control_Protocol</A> for explanation
 	 */
 	public static final String			TCP				= "tcp";
-//	/**
-//	 *	Protocol type :
-//	 *	(currently not supported)
-//	 */
-//	public static final String			PIPE			= "pipe";
-//	/**
-//	 *	Protocol type :
-//	 *	(currently not supported)
-//	 */
-//	public static final String			FILE			= "file";
 
 	/**
 	 *	Dump mode: do not dump messages
@@ -130,7 +97,7 @@ public interface OSCChannel
 	 *
 	 *	@see	#getBufferSize()
 	 */
-	public void setBufferSize( int size );
+	public void setBufferSize(int size);
 
 	/**
 	 *	Queries the buffer size used for coding or decoding OSC messages.
@@ -158,7 +125,7 @@ public interface OSCChannel
 	 *	@see	#kDumpHex
 	 *	@see	#kDumpBoth
 	 */
-	public void dumpOSC( int mode, PrintStream stream );
+	public void dumpOSC(int mode, PrintStream stream);
 
 	/**
 	 *	Disposes the resources associated with the OSC communicator.
@@ -170,18 +137,14 @@ public interface OSCChannel
 	 *	Specifies which codec is used in packet coding and decoding.
 	 *
 	 *	@param	c	the codec to use
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public void setCodec( OSCPacketCodec c );
+	public void setCodec(OSCPacketCodec c);
 	
 	/**
 	 *	Queries the codec used in packet coding and decoding.
 	 *
 	 *	@return	the current codec of this channel
 	 *	@see	OSCPacketCodec#getDefaultCodec()
-	 *
-	 *	@since		NetUtil 0.33
 	 */
 	public OSCPacketCodec getCodec();
 }

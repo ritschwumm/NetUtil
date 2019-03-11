@@ -1,42 +1,20 @@
 /*
- *  OSCBundle.java
- *  de.sciss.net (NetUtil)
+ *  OSCBundle.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		25-Jan-05	created from de.sciss.meloncillo.net.OSCBundle
- *		01-Mar-05	sample accurate timing through new setTimeTag() method
- *					(annot. 12-May-05 : scsynth OSC processing is *not* audiorate accurate)
- *		26-May-05	moved to de.sciss.net package ; slight modifications
- *		21-Jun-05	extended javadoc
- *		28-Apr-07	moved codec stuff to OSCPacketCodec
  */
 
 package de.sciss.net;
 
 import java.util.ArrayList;
 import java.util.List;
-//import java.util.Map;
 
 /**
  *  Implementation of the OSC-Bundle
@@ -108,14 +86,10 @@ import java.util.List;
  *	handles the byte buffer for you. See the <code>OSCReceiver</code> doc
  *	for an example using a dedicated transmitter.
  *
- *  @author		Hanns Holger Rutz
- *  @version	0.33, 28-Apr-07
- *
  *	@see		OSCReceiver
  */
 public class OSCBundle
-extends OSCPacket
-{
+		extends OSCPacket {
 	/**
 	 *  This is the initial string
 	 *  of an OSC bundle datagram
@@ -131,9 +105,8 @@ extends OSCPacket
 
 	private static final long SECONDS_FROM_1900_TO_1970 = 2208988800L;
 
-//	private static final byte[] cmd1  = { 0x23, 0x62, 0x75, 0x6E, 0x64, 0x6C, 0x65, 0x00 }; // "#bundle" (4-aligned)
 	private long timetag;   // 64 bit fixed point seconds since 1 jan 1900
-	protected final List collPackets  = new ArrayList();
+	protected final List<OSCPacket> collPackets  = new ArrayList<OSCPacket>();
 
 	/**
 	 *  Creates a new empty OSCBundle
@@ -141,11 +114,10 @@ extends OSCPacket
 	 *	SuperCollider recognizes this special timetime
 	 *	to process the bundle just when it arrives.
 	 */
-	public OSCBundle()
-	{
+	public OSCBundle() {
 		super();
 
-		timetag = NOW;	// special code
+		timetag = NOW;    // special code
 	}
 
 	/**
@@ -160,10 +132,9 @@ extends OSCPacket
 	 *  @param  when	absolute time tag for the bundle
 	 *  @see	java.lang.System#currentTimeMillis()
 	 */
-	public OSCBundle( long when )
-	{
+	public OSCBundle(long when) {
 		super();
-		setTimeTagAbsMillis( when );
+		setTimeTagAbsMillis(when);
 	}
 
 	/**
@@ -177,10 +148,9 @@ extends OSCPacket
 	 *
 	 *  @param  when	relative time tag for the bundle
 	 */
-	public OSCBundle( double when )
-	{
+	public OSCBundle(double when) {
 		super();
-		setTimeTagRelSecs( when );
+		setTimeTagRelSecs(when);
 	}
 
 	/**
@@ -195,10 +165,9 @@ extends OSCPacket
 	 *	@param	sampleRate		used in conjunction with <code>sampleFrames</code> to
 	 *							calculate the time offset.
 	 */
-	public OSCBundle( long absMillisOffset, long sampleFrames, int sampleRate )
-	{
+	public OSCBundle(long absMillisOffset, long sampleFrames, int sampleRate) {
 		super();
-		setTimeTagSamples( absMillisOffset, sampleFrames, sampleRate );
+		setTimeTagSamples(absMillisOffset, sampleFrames, sampleRate);
 	}
 	
 	/**
@@ -209,11 +178,10 @@ extends OSCPacket
 	 *
 	 *  @param  p   the packet to add to the tail of the bundle
 	 */
-	public void addPacket( OSCPacket p )
-	{
-		if( p != null ) {
-			synchronized( collPackets ) {
-				collPackets.add( p );
+	public void addPacket(OSCPacket p) {
+		if (p != null) {
+			synchronized (collPackets) {
+				collPackets.add(p);
 			}
 		}
 	}
@@ -228,10 +196,9 @@ extends OSCPacket
 	 *  @param  idx		index of the packet to get
 	 *  @return packet at index <code>idx</code>
 	 */
-	public OSCPacket getPacket( int idx )
-	{
-		synchronized( collPackets ) {
-			return (OSCPacket) collPackets.get( idx );
+	public OSCPacket getPacket(int idx) {
+		synchronized (collPackets) {
+			return collPackets.get(idx);
 		}
 	}
 
@@ -243,9 +210,8 @@ extends OSCPacket
 	 *
 	 *  @return number of packets assembled in this bundle
 	 */
-	public int getPacketCount()
-	{
-		synchronized( collPackets ) {
+	public int getPacketCount() {
+		synchronized (collPackets) {
 			return collPackets.size();
 		}
 	}
@@ -255,26 +221,11 @@ extends OSCPacket
 	 *
 	 *  @param  idx the index of the packet to remove
 	 */
-	public void removePacket( int idx )
-	{
-		synchronized( collPackets ) {
-			collPackets.remove( idx );
+	public void removePacket(int idx) {
+		synchronized (collPackets) {
+			collPackets.remove(idx);
 		}
 	}
-
-//	public int getSize()
-//	throws IOException
-//	{
-//		synchronized( collPackets ) {
-//			int result = cmd1.length + 8 + (collPackets.size() << 2); // name, timetag, size of each bundle element
-//
-//			for( int i = 0; i < collPackets.size(); i++ ) {
-//				result += ((OSCPacket) collPackets.get( i )).getSize();
-//			}
-//
-//			return result;
-//		}
-//	}
 
 	/**
 	 *  Sets the bundle's timetag
@@ -288,15 +239,13 @@ extends OSCPacket
 	 *  @param  when	absolute time tag for the bundle
 	 *  @see	java.lang.System#currentTimeMillis()
 	 */
-	public void setTimeTagAbsMillis( long when )
-	{
+	public void setTimeTagAbsMillis(long when) {
 		final long secsSince1900	= when / 1000 + SECONDS_FROM_1900_TO_1970;
-		final long secsFractional	= ((when % 1000) << 32) / 1000;
-		timetag						= (secsSince1900 << 32) | secsFractional;
+		final long secsFractional 	= ((when % 1000) << 32) / 1000;
+		timetag = (secsSince1900 << 32) | secsFractional;
 	}
-	
-	public void setTimeTagRaw( long raw )
-	{
+
+	public void setTimeTagRaw(long raw) {
 		timetag = raw;
 	}
 
@@ -311,10 +260,8 @@ extends OSCPacket
 	 *
 	 *  @param  when	relative time tag for the bundle
 	 */
-	public void setTimeTagRelSecs( double when )
-	{
-//		timetag	= ((long) when << 32) | (long) ((when % 1.0) * 0x100000000L + 0.5);
-		timetag	= ((long) when << 32) + (long) ((when % 1.0) * 0x100000000L + 0.5);
+	public void setTimeTagRelSecs(double when) {
+		timetag = ((long) when << 32) + (long) ((when % 1.0) * 0x100000000L + 0.5);
 	}
 
 	/**
@@ -330,10 +277,9 @@ extends OSCPacket
 	 *	@param	sampleRate		used in conjunction with <code>sampleFrames</code> to
 	 *							calculate the time offset.
 	 */
-	public void setTimeTagSamples( long absMillisOffset, long sampleFrames, int sampleRate )
-	{
-		final double seconds= (double) sampleFrames / (double) sampleRate + (double) absMillisOffset / 1000;
-		timetag				= (((long) seconds + SECONDS_FROM_1900_TO_1970) << 32) + (long) ((seconds % 1.0) * 0x100000000L + 0.5);
+	public void setTimeTagSamples(long absMillisOffset, long sampleFrames, int sampleRate) {
+		final double seconds = (double) sampleFrames / (double) sampleRate + (double) absMillisOffset / 1000;
+		timetag = (((long) seconds + SECONDS_FROM_1900_TO_1970) << 32) + (long) ((seconds % 1.0) * 0x100000000L + 0.5);
 	}
 
 	/**
@@ -341,12 +287,9 @@ extends OSCPacket
 	 *  of the bundle
 	 *
 	 *  @return  the bundle's timetag in OSC format
-	 *
-	 *	@todo	a utility method to convert this
-	 *			to a more useful value
 	 */
-	public long getTimeTag()
-	{
+	public long getTimeTag() {
+		// TODO a utility method to convert this to a more useful value
 		return timetag;
 	}
 }

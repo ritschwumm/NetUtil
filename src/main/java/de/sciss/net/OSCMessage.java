@@ -1,40 +1,14 @@
 /*
- *  OSCMessage.java
- *  de.sciss.net (NetUtil)
+ *  OSCMessage.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		25-Jan-05	created from de.sciss.meloncillo.net.OSCMessage
- *		22-Feb-05	new argument type OSCPacket allowed : in this case,
- *					the packet is append as a OSC-blob which is very
- *					convenient for SuperCollider which uses a lot of
- *					optional completion-messages.
- *		26-May-05	moved to de.sciss.net package
- *		21-Jun-05	extended javadoc, NO_ARGS
- *		04-Sep-05	message argument class byte[] added (encoded as blob)
- *		09-Sep-05	fixed blob byte boundary alignment ; fixed getSize() method for blob args
- *		11-Nov-05	fix in blob decode
- *		28-Apr-07	moved codec stuff to OSCPacketCodec
  */
 
 package de.sciss.net;
@@ -100,14 +74,11 @@ import java.nio.ByteBuffer;
  *	handles the byte buffer for you. See the <code>OSCReceiver</code> doc
  *	for an example using a dedicated transmitter.
  *
- *  @author		Hanns Holger Rutz
- *  @version	0.33, 28-Apr-07
- *
  *	@see		OSCReceiver
  */
 public class OSCMessage
-extends OSCPacket
-{
+		extends OSCPacket {
+
 	private Object[]	args;
 	private String		name;
 	
@@ -120,7 +91,7 @@ extends OSCPacket
 	 *
 	 *	@see	#OSCMessage( String )
 	 */
-	public static final Object[] NO_ARGS	= new Object[0];
+	public static final Object[] NO_ARGS = new Object[0];
 
 	/**
 	 *  Creates a generic OSC message
@@ -128,12 +99,11 @@ extends OSCPacket
 	 *
 	 *  @param  name	the OSC command, like "/s_new"
 	 */
-	public OSCMessage( String name )
-	{
+	public OSCMessage(String name) {
 		super();
 
-		this.name   = name;
-		this.args	= NO_ARGS;
+		this.name = name;
+		this.args = NO_ARGS;
 	}
 
 	/**
@@ -148,12 +118,11 @@ extends OSCPacket
 	 *					are written as a blob). Note that in a future version of NetUtil, special codecs
 	 *					will allow customization of the way classes are encoded.
 	 */
-	public OSCMessage( String name, Object[] args )
-	{
+	public OSCMessage(String name, Object[] args) {
 		super();
-		
-		this.name   = name;
-		this.args   = args;
+
+		this.name = name;
+		this.args = args;
 	}
 	
 	/**
@@ -161,8 +130,7 @@ extends OSCPacket
 	 *
 	 *  @return		the message's command, e.g. "/synced" etc.
 	 */
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
@@ -198,9 +166,8 @@ extends OSCPacket
 	 *	@see	#decodeMessage( String, ByteBuffer )
 	 *	@see	Number#intValue()
 	 */
-	public Object getArg( int index )
-	{
-		return args[ index ];
+	public Object getArg(int index) {
+		return args[index];
 	}
 
 	/**
@@ -224,9 +191,8 @@ extends OSCPacket
 	 *  @throws IllegalArgumentException	occurs in some cases of buffer underflow
 	 *	@see	OSCPacketCodec#decodeMessage( String, ByteBuffer )
 	 */
-	public static OSCMessage decodeMessage( String command, ByteBuffer b )
-	throws IOException
-	{
-		return OSCPacketCodec.getDefaultCodec().decodeMessage( command, b );
+	public static OSCMessage decodeMessage(String command, ByteBuffer b)
+			throws IOException {
+		return OSCPacketCodec.getDefaultCodec().decodeMessage(command, b);
 	}
 }

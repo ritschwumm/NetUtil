@@ -1,32 +1,14 @@
 /*
- *  OSCClient.java
- *  de.sciss.net (NetUtil)
+ *  OSCClient.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		17-Sep-06	created
- *		14-Oct-06	using revivable channels
- *		02-Jul-07	added codec based factory methods
  */
 
 package de.sciss.net;
@@ -121,22 +103,16 @@ import java.net.SocketAddress;
  *	@see		OSCTransmitter
  *	@see		OSCReceiver
  *	@see		OSCServer
- *
- *  @author		Hanns Holger Rutz
- *  @version	0.37, 12-May-09
- *
- *	@since		NetUtil 0.30
  */
 public class OSCClient
-implements OSCBidi
-{
+		implements OSCBidi {
+
 	private final OSCReceiver			rcv;
 	private final OSCTransmitter		trns;
 	private int							bufSize			= DEFAULTBUFSIZE;
 	private final String				protocol;
-	
-	private OSCClient( OSCReceiver rcv, OSCTransmitter trns, String protocol )
-	{
+
+	private OSCClient(OSCReceiver rcv, OSCTransmitter trns, String protocol) {
 		this.rcv		= rcv;
 		this.trns		= trns;
 		this.protocol	= protocol;
@@ -158,10 +134,9 @@ implements OSCBidi
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
 	 */
-	public static OSCClient newUsing( String protocol )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol );
+	public static OSCClient newUsing(String protocol)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol);
 	}
 	
 	/**
@@ -180,13 +155,10 @@ implements OSCBidi
 	 *	@see	OSCChannel#UDP
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCClient newUsing( OSCPacketCodec c, String protocol )
-	throws IOException
-	{
-		return newUsing( c, protocol, 0 );
+	public static OSCClient newUsing(OSCPacketCodec c, String protocol)
+			throws IOException {
+		return newUsing(c, protocol, 0);
 	}
 	
 	/**
@@ -207,10 +179,9 @@ implements OSCBidi
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCClient newUsing( String protocol, int port )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, port );
+	public static OSCClient newUsing(String protocol, int port)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, port);
 	}
 
 	/**
@@ -231,13 +202,10 @@ implements OSCBidi
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCClient newUsing( OSCPacketCodec c, String protocol, int port )
-	throws IOException
-	{
-		return newUsing( c, protocol, port, false );
+	public static OSCClient newUsing(OSCPacketCodec c, String protocol, int port)
+			throws IOException {
+		return newUsing(c, protocol, port, false);
 	}
 
 	/**
@@ -263,10 +231,9 @@ implements OSCBidi
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCClient newUsing( String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack );
+	public static OSCClient newUsing(String protocol, int port, boolean loopBack)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack);
 	}
 
 	/**
@@ -292,16 +259,14 @@ implements OSCBidi
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCClient newUsing( OSCPacketCodec c, String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-		final OSCReceiver		rcv		= OSCReceiver.newUsing( c, protocol, port, loopBack );
-		final OSCTransmitter	trns	= OSCTransmitter.newUsing( c, protocol, port, loopBack );
+	public static OSCClient newUsing(OSCPacketCodec c, String protocol, int port, boolean loopBack)
+			throws IOException {
 
-		return new OSCClient( rcv, trns, protocol );
+		final OSCReceiver 		rcv 	= OSCReceiver	.newUsing(c, protocol, port, loopBack);
+		final OSCTransmitter 	trns 	= OSCTransmitter.newUsing(c, protocol, port, loopBack);
+
+		return new OSCClient(rcv, trns, protocol);
 	}
 
 	/**
@@ -319,16 +284,13 @@ implements OSCBidi
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.39
 	 */
-	public static OSCClient newUsing( String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		final OSCReceiver		rcv		= OSCReceiver.newUsing( protocol, localAddress );
-		final OSCTransmitter	trns	= OSCTransmitter.newUsing( protocol, localAddress );
+	public static OSCClient newUsing(String protocol, InetSocketAddress localAddress)
+			throws IOException {
+		final OSCReceiver rcv = OSCReceiver.newUsing(protocol, localAddress);
+		final OSCTransmitter trns = OSCTransmitter.newUsing(protocol, localAddress);
 
-		return new OSCClient( rcv, trns, protocol );
+		return new OSCClient(rcv, trns, protocol);
 	}
 
 	/**
@@ -347,20 +309,17 @@ implements OSCBidi
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.39
 	 */
-	public static OSCClient newUsing( OSCPacketCodec c, String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		final OSCReceiver		rcv		= OSCReceiver.newUsing( c, protocol, localAddress );
-		final OSCTransmitter	trns	= OSCTransmitter.newUsing( c, protocol, localAddress );
+	public static OSCClient newUsing(OSCPacketCodec c, String protocol, InetSocketAddress localAddress)
+			throws IOException {
 
-		return new OSCClient( rcv, trns, protocol );
+		final OSCReceiver 		rcv 	= OSCReceiver	.newUsing(c, protocol, localAddress);
+		final OSCTransmitter 	trns 	= OSCTransmitter.newUsing(c, protocol, localAddress);
+
+		return new OSCClient(rcv, trns, protocol);
 	}
 
-	public String getProtocol()
-	{
+	public String getProtocol() {
 		return protocol;
 	}
 
@@ -387,8 +346,7 @@ implements OSCBidi
 	 *	@see	#getProtocol()
 	 */
 	public InetSocketAddress getLocalAddress()
-	throws IOException
-	{
+			throws IOException {
 		return rcv.getLocalAddress();
 	}
 	
@@ -401,20 +359,17 @@ implements OSCBidi
 	 *
 	 *	@see	InetSocketAddress
 	 */
-	public void setTarget( SocketAddress target )
-	{
-		rcv.setTarget( target );
-		trns.setTarget( target );
+	public void setTarget(SocketAddress target) {
+		rcv	.setTarget(target);
+		trns.setTarget(target);
 	}
-	
-	public void setCodec( OSCPacketCodec c )
-	{
-		rcv.setCodec( c );
-		trns.setCodec( c );
+
+	public void setCodec(OSCPacketCodec c) {
+		rcv	.setCodec(c);
+		trns.setCodec(c);
 	}
-	
-	public OSCPacketCodec getCodec()
-	{
+
+	public OSCPacketCodec getCodec() {
 		return rcv.getCodec();
 	}
 	
@@ -433,8 +388,7 @@ implements OSCBidi
 	 *	@see	#start()
 	 */
 	public void connect()
-	throws IOException
-	{
+			throws IOException {
 		trns.connect();
 	}
 
@@ -466,10 +420,9 @@ implements OSCBidi
 	 *
 	 *	@see	#setTarget( SocketAddress )
 	 */
-	public void send( OSCPacket p )
-	throws IOException
-	{
-		trns.send( p );
+	public void send(OSCPacket p)
+			throws IOException {
+		trns.send(p);
 	}
 
 	/**
@@ -479,9 +432,8 @@ implements OSCBidi
 	 *
 	 *  @param  listener	the listener to register
 	 */
-	public void addOSCListener( OSCListener listener )
-	{
-		rcv.addOSCListener( listener );
+	public void addOSCListener(OSCListener listener) {
+		rcv.addOSCListener(listener);
 	}
 
 	/**
@@ -491,40 +443,50 @@ implements OSCBidi
 	 *  @param  listener	the listener to remove from
 	 *						the list of notified objects.
 	 */
-	public void removeOSCListener( OSCListener listener )
-	{
-		rcv.removeOSCListener( listener );
+	public void removeOSCListener(OSCListener listener) {
+		rcv.removeOSCListener(listener);
 	}
 
-	public void addConnectionListener(OSCConnectionListener e) {
-		rcv.addConnectionListener(e);
+	/**
+	 *  Registers a listener that gets informed
+	 *  about `connect` calls and eventual disconnection of the receiver.
+	 *
+	 *  @param  listener	the listener to register
+	 */
+	public void addConnectionListener(OSCConnectionListener listener) {
+		rcv.addConnectionListener(listener);
 	}
 
-	public void removeConnectionListener(OSCConnectionListener o) {
-		rcv.removeConnectionListener(o);
+	/**
+	 *  Unregisters a listener that gets informed
+	 *  about `connect` calls and disconnection of the receiver.
+	 *
+	 *  @param  listener	the listener to register
+	 */
+	public void removeConnectionListener(OSCConnectionListener listener) {
+		rcv.removeConnectionListener(listener);
 	}
 
 	/**
 	 *	Starts the client. This calls <code>connect</code> if the transport requires
 	 *	connectivity (e.g. TCP) and the channel is not yet connected.
 	 *	It then tells the underlying OSC receiver to start listening.
-	 *	
+	 *
+	 *	<b>Warning</b>:	in the current version, it is not possible to &quot;revive&quot;
+	 *				clients after the server has closed the connection. Also it's not
+	 *				possible to start a TCP client more than once. This might be
+	 *				possible in a future version.
+	 *
 	 *	@throws	IOException	if a networking error occurs. Possible reasons: - the underlying
 	 *						network channel had been closed by the server. - the transport
 	 *						is TCP and the server is not available. - the transport is TCP
 	 *						and the client was stopped before (unable to revive).
-	 *
-	 *	@warning	in the current version, it is not possible to &quot;revive&quot;
-	 *				clients after the server has closed the connection. Also it's not
-	 *				possible to start a TCP client more than once. This might be
-	 *				possible in a future version.
 	 */
 	public void start()
-	throws IOException
-	{
-		if( !trns.isConnected() ) {
+			throws IOException {
+		if (!trns.isConnected()) {
 			trns.connect();
-			rcv.setChannel( trns.getChannel() );
+			rcv.setChannel(trns.getChannel());
 		}
 		rcv.startListening();
 	}
@@ -538,14 +500,12 @@ implements OSCBidi
 	 *	@see	#start()
 	 *	@see	#stop()
 	 */
-	public boolean isActive()
-	{
+	public boolean isActive() {
 		return rcv.isListening();
 	}
 
 	public void stop()
-	throws IOException
-	{
+			throws IOException {
 		rcv.stopListening();
 	}
 
@@ -563,11 +523,10 @@ implements OSCBidi
 	 *	@see	#isActive()
 	 *	@see	#getBufferSize()
 	 */
-	public void setBufferSize( int size )
-	{
+	public void setBufferSize(int size) {
 		bufSize = size;
-		rcv.setBufferSize( size );
-		trns.setBufferSize( size );
+		rcv	.setBufferSize(size);
+		trns.setBufferSize(size);
 	}
 	
 	/**
@@ -602,20 +561,17 @@ implements OSCBidi
 	 *	@see	#kDumpHex
 	 *	@see	#kDumpBoth
 	 */
-	public void dumpOSC( int mode, PrintStream stream )
-	{
-		dumpIncomingOSC( mode, stream );
-		dumpOutgoingOSC( mode, stream );
+	public void dumpOSC(int mode, PrintStream stream) {
+		dumpIncomingOSC(mode, stream);
+		dumpOutgoingOSC(mode, stream);
 	}
 
-	public void dumpIncomingOSC( int mode, PrintStream stream )
-	{
-		rcv.dumpOSC( mode, stream );
+	public void dumpIncomingOSC(int mode, PrintStream stream) {
+		rcv.dumpOSC(mode, stream);
 	}
 
-	public void dumpOutgoingOSC( int mode, PrintStream stream )
-	{
-		trns.dumpOSC( mode, stream );
+	public void dumpOutgoingOSC(int mode, PrintStream stream) {
+		trns.dumpOSC(mode, stream);
 	}
 
 	/**
@@ -623,9 +579,8 @@ implements OSCBidi
 	 *	This automatically stops the client and closes the networking channel.
 	 *	Do not use this client instance any more after calling <code>dispose.</code>
 	 */
-	public void dispose()
-	{
-		rcv.dispose();
+	public void dispose() {
+		rcv	.dispose();
 		trns.dispose();
 	}
 }

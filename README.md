@@ -5,17 +5,25 @@
 
 ## statement
 
-NetUtil is a compact and efficient Java library for sending and receiving messages using the OpenSoundControl (OSC) protocol. It is (C)opyright 2004&ndash;2018 by Hanns Holger Rutz. All rights reserved. NetUtil is released under the [GNU Lesser General Public License](https://raw.github.com/Sciss/NetUtil/master/LICENSE) and comes with absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
+NetUtil is a compact and efficient Java library for sending and receiving messages using the OpenSoundControl (OSC) 
+protocol. It is (C)opyright 2004&ndash;2019 by Hanns Holger Rutz. All rights reserved. NetUtil is released under 
+the [GNU Lesser General Public License](https://raw.github.com/Sciss/NetUtil/master/LICENSE) and comes with 
+absolutely no warranties. To contact the author, send an email to `contact at sciss.de`.
 
 For project status, API and current version, visit [git.iem.at/sciss/NetUtil](https://git.iem.at/sciss/NetUtil).
 
-Note that this project is not actively developed any more (unless there are bugs to fix). For a current OSC library in the Scala programming language, please visit [git.iem.at/sciss/ScalaOSC](https://git.iem.at/sciss/ScalaOSC).
+Note that this project is not actively developed any more (unless there are bugs to fix). For a current OSC library 
+in the Scala programming language, please visit [git.iem.at/sciss/ScalaOSC](https://git.iem.at/sciss/ScalaOSC).
 
 ## requirements / building
 
-NetUtil requires Java 1.6+. NetUtil has also been successfuly running on Android. It uses [sbt](https://www.scala-sbt.org/) for building. You can use the included `sbt` shell script if you do not want to install sbt. This script is written by Paul Phillips, and released under a [BSD style license](https://github.com/paulp/sbt-extras/blob/master/LICENSE.txt).
+NetUtil requires Java 1.6+. NetUtil has also been successfully running on Android. It uses 
+[sbt](https://www.scala-sbt.org/) for building. You can use the included `sbt` shell script if you do not want to 
+install sbt. This script is written by Paul Phillips, and released under a 
+[BSD style license](https://github.com/paulp/sbt-extras/blob/master/LICENSE.txt).
 
 To compile `sbt compile`, to generate a jar `sbt package`.
+Alternatively, there is now a Maven `pom.xml` included, although it is untested and unsupported.
 
 ## linking
 
@@ -23,11 +31,11 @@ To use NetUtil in your project, you can link to the following [Maven](http://sea
 
     GroupId: de.sciss
     ArtifactId: netutil
-    Version: 1.0.3
+    Version: 1.1.0
 
 Or when using sbt
 
-    "de.sciss" % "netutil" % "1.0.3"
+    "de.sciss" % "netutil" % "1.1.0"
 
 ## contributing
 
@@ -36,6 +44,7 @@ Please see the file [CONTRIBUTING.md](CONTRIBUTING.md)
 The following people have thankfully contributed to this project:
 
  - Felix Homann (@showlabor)
+ - David Zhang (@nybbs2003)
 
 ## documentation
 
@@ -71,6 +80,5 @@ Here is some sporadic list of projects which seem to use NetUtil. if you want to
 
 ## to-do / known issues
 
-- add special client and server listeners so one can detect channels/connections opening and closing
 - add helper classes (multi-server wrapper, message deferrer)
 

@@ -1,31 +1,14 @@
 /*
- *  OSCServer.java
- *  de.sciss.net (NetUtil)
+ *  OSCServer.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		18-Sep-06	created
- *		02-Jul-07	added codec based factory methods
  */
 
 package de.sciss.net;
@@ -42,9 +25,7 @@ import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -160,26 +141,20 @@ import java.util.logging.Logger;
  *	</pre>
  *
  *	@see		OSCClient
- *
- *  @author		Hanns Holger Rutz
- *  @version	0.37, 12-May-09
- *
- *	@since		NetUtil 0.30
- *
- *	@todo	should provide means to accept or reject connections
- *	@todo	should provide means to close particular connections
  */
 public abstract class OSCServer
-implements OSCBidi
-{
-	protected final List<OSCConnectionListener>         connListeners   = new ArrayList<OSCConnectionListener>();
-	protected OSCPacketCodec	defaultCodec;
-	private final String		protocol;
+		implements OSCBidi {
 
-	protected OSCServer( OSCPacketCodec c, String protocol )
-	{
-		defaultCodec	= c;
-		this.protocol	= protocol;
+	// TODO should provide means to accept or reject connections
+ 	// TODO should provide means to close particular connections
+
+	protected final List<OSCConnectionListener>	connListeners = new ArrayList<OSCConnectionListener>();
+	protected OSCPacketCodec					defaultCodec;
+	private final String						protocol;
+
+	protected OSCServer(OSCPacketCodec c, String protocol) {
+		defaultCodec = c;
+		this.protocol = protocol;
 	}
 
 	/**
@@ -198,10 +173,9 @@ implements OSCBidi
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
 	 */
-	public static OSCServer newUsing( String protocol )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol );
+	public static OSCServer newUsing(String protocol)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol);
 	}
 	
 	/**
@@ -220,13 +194,10 @@ implements OSCBidi
 	 *	@see	OSCChannel#UDP
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCServer newUsing( OSCPacketCodec c, String protocol )
-	throws IOException
-	{
-		return newUsing( c, protocol, 0 );
+	public static OSCServer newUsing(OSCPacketCodec c, String protocol)
+			throws IOException {
+		return newUsing(c, protocol, 0);
 	}
 
 	/**
@@ -249,10 +220,9 @@ implements OSCBidi
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCServer newUsing( String protocol, int port )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, port );
+	public static OSCServer newUsing(String protocol, int port)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, port);
 	}
 
 	/**
@@ -275,13 +245,10 @@ implements OSCBidi
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCServer newUsing( OSCPacketCodec c, String protocol, int port )
-	throws IOException
-	{
-		return newUsing( c, protocol, port, false );
+	public static OSCServer newUsing(OSCPacketCodec c, String protocol, int port)
+			throws IOException {
+		return newUsing(c, protocol, port, false);
 	}
 
 	/**
@@ -309,10 +276,9 @@ implements OSCBidi
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCServer newUsing( String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack );
+	public static OSCServer newUsing(String protocol, int port, boolean loopBack)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack);
 	}
 		
 	/**
@@ -340,16 +306,11 @@ implements OSCBidi
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCServer newUsing( OSCPacketCodec c, String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-//		final InetSocketAddress localAddress = loopBack ? new InetSocketAddress( "127.0.0.1", port ) :
-//														  new InetSocketAddress( InetAddress.getLocalHost(), port );
-		final InetSocketAddress localAddress = new InetSocketAddress( loopBack ? "127.0.0.1" : "0.0.0.0", port );
-		return newUsing( c, protocol, localAddress );
+	public static OSCServer newUsing(OSCPacketCodec c, String protocol, int port, boolean loopBack)
+			throws IOException {
+		final InetSocketAddress localAddress = new InetSocketAddress(loopBack ? "127.0.0.1" : "0.0.0.0", port);
+		return newUsing(c, protocol, localAddress);
 	}
 
 	/**
@@ -369,13 +330,10 @@ implements OSCBidi
 	 *	@see	OSCChannel#UDP
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
-	 *
-	 *	@since		NetUtil 0.39
 	 */
-	public static OSCServer newUsing( String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, localAddress );
+	public static OSCServer newUsing(String protocol, InetSocketAddress localAddress)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, localAddress);
 	}
 	
 	/**
@@ -396,20 +354,17 @@ implements OSCBidi
 	 *	@see	OSCChannel#UDP
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
-	 *
-	 *	@since		NetUtil 0.39
 	 */
-	public static OSCServer newUsing( OSCPacketCodec c, String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		if( protocol.equals( UDP )) {
-			return new UDPOSCServer( c, localAddress );
-			
-		} else if( protocol.equals( TCP )) {
-			return new TCPOSCServer( c, localAddress );
-			
+	public static OSCServer newUsing(OSCPacketCodec c, String protocol, InetSocketAddress localAddress)
+			throws IOException {
+		if (protocol.equals(UDP)) {
+			return new UDPOSCServer(c, localAddress);
+
+		} else if (protocol.equals(TCP)) {
+			return new TCPOSCServer(c, localAddress);
+
 		} else {
-			throw new IllegalArgumentException( NetUtil.getResourceString( "errUnknownProtocol" ) + protocol );
+			throw new IllegalArgumentException(NetUtil.getResourceString("errUnknownProtocol") + protocol);
 		}
 	}
 
@@ -459,9 +414,9 @@ implements OSCBidi
 	 *						buffer overflow error or network error occurs,
 	 *						if no client connection for the given address exists
 	 */
-	public abstract void send( OSCPacket p, SocketAddress target ) throws IOException;
-	
-	public abstract void sendAll( OSCPacket p) throws IOException;
+	public abstract void send(OSCPacket p, SocketAddress target) throws IOException;
+
+	public abstract void sendAll(OSCPacket p) throws IOException;
 
 	/**
 	 *  Registers a listener that gets informed
@@ -470,7 +425,7 @@ implements OSCBidi
 	 *
 	 *  @param  listener	the listener to register
 	 */
-	public abstract void addOSCListener( OSCListener listener );
+	public abstract void addOSCListener(OSCListener listener);
 
 	/**
 	 *  Unregisters a listener that gets informed
@@ -479,7 +434,7 @@ implements OSCBidi
 	 *  @param  listener	the listener to remove from
 	 *						the list of notified objects.
 	 */
-	public abstract void removeOSCListener( OSCListener listener );
+	public abstract void removeOSCListener(OSCListener listener);
 
 	public void addConnectionListener(OSCConnectionListener e) {
 		synchronized (connListeners) {
@@ -518,18 +473,16 @@ implements OSCBidi
 	 *	@throws	IOException	if a networking error occurs
 	 */
 	public abstract void stop() throws IOException;
-		
-	public abstract void setBufferSize( int size );
+
+	public abstract void setBufferSize(int size);
 
 	public abstract int getBufferSize();
-	
-	public void setCodec( OSCPacketCodec c )
-	{
+
+	public void setCodec(OSCPacketCodec c) {
 		defaultCodec = c;
 	}
-	
-	public OSCPacketCodec getCodec()
-	{
+
+	public OSCPacketCodec getCodec() {
 		return defaultCodec;
 	}
 
@@ -540,10 +493,8 @@ implements OSCBidi
 	 *	@param	c		the codec to use
 	 *	@param	target	the client's address for whom the codec is changed
 	 *	@throws	IOException	if a networking error occurs or the client does not exist
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public abstract void setCodec( OSCPacketCodec c, SocketAddress target ) throws IOException;
+	public abstract void setCodec(OSCPacketCodec c, SocketAddress target) throws IOException;
 
 	/**
 	 *	Queries the codec used in packet coding and decoding
@@ -554,20 +505,17 @@ implements OSCBidi
 	 *	@throws	IOException	if a networking error occurs or the client does not exist
 	 *
 	 *	@see	OSCPacketCodec#getDefaultCodec()
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public abstract OSCPacketCodec getCodec( SocketAddress target ) throws IOException;
+	public abstract OSCPacketCodec getCodec(SocketAddress target) throws IOException;
 
-	public final void dumpOSC( int mode, PrintStream stream )
-	{
-		dumpIncomingOSC( mode, stream );
-		dumpOutgoingOSC( mode, stream );
+	public final void dumpOSC(int mode, PrintStream stream) {
+		dumpIncomingOSC(mode, stream);
+		dumpOutgoingOSC(mode, stream);
 	}
 
-	public abstract void dumpIncomingOSC( int mode, PrintStream stream );
+	public abstract void dumpIncomingOSC(int mode, PrintStream stream);
 
-	public abstract void dumpOutgoingOSC( int mode, PrintStream stream );
+	public abstract void dumpOutgoingOSC(int mode, PrintStream stream);
 
 	/**
 	 *	Destroys the server and frees resources associated with it.
@@ -576,147 +524,123 @@ implements OSCBidi
 	 */
 	public abstract void dispose();
 
-	protected InetSocketAddress getLocalAddress( InetAddress addr, int port )
-	throws UnknownHostException
-	{
-		return new InetSocketAddress( addr.getHostName().equals( "0.0.0.0" ) ? InetAddress.getLocalHost() : addr, port );
+	protected InetSocketAddress getLocalAddress(InetAddress addr, int port)
+			throws UnknownHostException {
+		return new InetSocketAddress(addr.getHostName().equals("0.0.0.0") ? InetAddress.getLocalHost() : addr, port);
 	}
 
 	private static class UDPOSCServer
-	extends OSCServer
-	{
-//		private final Map				mapCodecs	= new HashMap();	// key = SocketAddress (remote), value = OSCPacketCodec
+			extends OSCServer {
 
 		private final OSCReceiver		rcv;
 		private final OSCTransmitter	trns;
 		private final InetSocketAddress localAddress;
 
-		protected UDPOSCServer( OSCPacketCodec c, InetSocketAddress localAddress )
-		throws IOException
-		{
-			super( c, UDP );
+		protected UDPOSCServer(OSCPacketCodec c, InetSocketAddress localAddress)
+				throws IOException {
+			super(c, UDP);
 			this.localAddress = localAddress;
-			rcv		= OSCReceiver.newUsing( c, UDP, localAddress );
-			trns	= OSCTransmitter.newUsing( c, UDP, localAddress );
+			rcv 	= OSCReceiver	.newUsing(c, UDP, localAddress);
+			trns	= OSCTransmitter.newUsing(c, UDP, localAddress);
 		}
-		
+
 		public InetSocketAddress getLocalAddress()
-		throws IOException
-		{
+				throws IOException {
 			return rcv.getLocalAddress();
 		}
 
-		public void addOSCListener( OSCListener listener )
-		{
-			rcv.addOSCListener( listener );
+		public void addOSCListener(OSCListener listener) {
+			rcv.addOSCListener(listener);
 		}
-		
-		public void removeOSCListener( OSCListener listener )
-		{
-			rcv.removeOSCListener( listener );
+
+		public void removeOSCListener(OSCListener listener) {
+			rcv.removeOSCListener(listener);
 		}
-		
-		public void setCodec( OSCPacketCodec c )
-		{
-			rcv.setCodec( c );
-			trns.setCodec( c );
-			super.setCodec( c );
+
+		public void setCodec(OSCPacketCodec c) {
+			rcv		.setCodec(c);
+			trns	.setCodec(c);
+			super	.setCodec(c);
 		}
-		
-		public void setCodec( OSCPacketCodec c, SocketAddress target )
-		throws IOException
-		{
-			throw new IOException( "Not supported in UDP mode" );
+
+		public void setCodec(OSCPacketCodec c, SocketAddress target)
+				throws IOException {
+			throw new IOException("Not supported in UDP mode");
 		}
-		
-		public OSCPacketCodec getCodec( SocketAddress target )
-		throws IOException
-		{
-			throw new IOException( "Not supported in UDP mode" );
+
+		public OSCPacketCodec getCodec(SocketAddress target)
+				throws IOException {
+			throw new IOException("Not supported in UDP mode");
 		}
 
 		public void start()
-		throws IOException
-		{
-			if( !trns.isConnected() ) {
+				throws IOException {
+			if (!trns.isConnected()) {
 				trns.connect();
-				rcv.setChannel( trns.getChannel() );
+				rcv.setChannel(trns.getChannel());
 			}
 			rcv.startListening();
-			for(OSCConnectionListener l : connListeners) {
+			for (OSCConnectionListener l : connListeners) {
 				l.onConnected(localAddress, null);
 			}
 		}
 
 		public void stop()
-		throws IOException
-		{
+				throws IOException {
 			rcv.stopListening();
-			for(OSCConnectionListener l : connListeners) {
+			for (OSCConnectionListener l : connListeners) {
 				l.onDisconnected(localAddress, null);
 			}
 		}
-		
-		public boolean isActive()
-		{
+
+		public boolean isActive() {
 			return rcv.isListening();
 		}
-		
-		public void send( OSCPacket p, SocketAddress target )
-		throws IOException
-		{
-			trns.send( p, target );
+
+		public void send(OSCPacket p, SocketAddress target)
+				throws IOException {
+			trns.send(p, target);
 		}
 
-//		protected SelectableChannel getChannel()
-//		{
-//			return rcv.getChannel();
-//		}
-		
 		@Override
 		public void sendAll(OSCPacket p) throws IOException {
 			throw new UnsupportedOperationException();
 		}
 
-		public void dispose()
-		{
-			rcv.dispose();
+		public void dispose() {
+			rcv	.dispose();
 			trns.dispose();
-			for(OSCConnectionListener l : connListeners) {
+			for (OSCConnectionListener l : connListeners) {
 				l.onDisconnected(localAddress, null);
 			}
 		}
 
-		public void setBufferSize( int size )
-		{
-			rcv.setBufferSize( size );
-			trns.setBufferSize( size );
+		public void setBufferSize(int size) {
+			rcv	.setBufferSize(size);
+			trns.setBufferSize(size);
 		}
 
-		public int getBufferSize()
-		{
+		public int getBufferSize() {
 			return rcv.getBufferSize();
 		}
 
-		public void dumpIncomingOSC( int mode, PrintStream stream )
-		{
-			rcv.dumpOSC( mode, stream );
+		public void dumpIncomingOSC(int mode, PrintStream stream) {
+			rcv.dumpOSC(mode, stream);
 		}
-		
-		public void dumpOutgoingOSC( int mode, PrintStream stream )
-		{
-			trns.dumpOSC( mode, stream );
+
+		public void dumpOutgoingOSC(int mode, PrintStream stream) {
+			trns.dumpOSC(mode, stream);
 		}
 	}
 
 	private static class TCPOSCServer
-	extends OSCServer
-	implements Runnable, OSCListener
-	{
-		private final Map<SocketAddress, OSCReceiver>					mapRcv			= new HashMap<SocketAddress, OSCReceiver>();	// key = SocketAddress (remote), value = OSCReceiver
-		private final Map<SocketAddress, OSCTransmitter>					mapTrns			= new HashMap<SocketAddress, OSCTransmitter>();	// key = SocketAddress (remote), value = OSCTransmitter
+			extends OSCServer
+			implements Runnable, OSCListener {
 
-		private final List<OSCListener>					collListeners   = new ArrayList<OSCListener>();
+		private final Map<SocketAddress, OSCReceiver>		mapRcv	= new HashMap<SocketAddress, OSCReceiver>();	// key = SocketAddress (remote), value = OSCReceiver
+		private final Map<SocketAddress, OSCTransmitter>	mapTrns	= new HashMap<SocketAddress, OSCTransmitter>();	// key = SocketAddress (remote), value = OSCTransmitter
+
+		private final List<OSCListener>		collListeners   = new ArrayList<OSCListener>();
 		private Thread						thread			= null;
 		private final Object				startStopSync	= new Object();		// mutual exclusion startListening / stopListening
 		private final Object				threadSync		= new Object();		// communication with receiver thread
@@ -731,130 +655,113 @@ implements OSCBidi
 		private PrintStream					inStream		= null;
 		private PrintStream					outStream		= null;
 		
-//		private final InetSocketAddress		localAddress;
 		private final ServerSocketChannel	ssch;
-		
-		protected TCPOSCServer( OSCPacketCodec c, InetSocketAddress localAddress )
-		throws IOException
-		{
-			super( c, TCP );
-			
-//			this.localAddress	= localAddress;
-			ssch				= ServerSocketChannel.open();
-			ssch.socket().bind( localAddress );
+
+		protected TCPOSCServer(OSCPacketCodec c, InetSocketAddress localAddress)
+				throws IOException {
+			super(c, TCP);
+
+			ssch = ServerSocketChannel.open();
+			ssch.socket().bind(localAddress);
 		}
 
 		public InetSocketAddress getLocalAddress()
-		throws IOException
-		{
+				throws IOException {
 			final ServerSocket ss = ssch.socket();
-			return getLocalAddress( ss.getInetAddress(), ss.getLocalPort() );
-//			return new InetSocketAddress( ssch.socket().getInetAddress(), ssch.socket().getLocalPort() );
-//			return localAddress;
+			return getLocalAddress(ss.getInetAddress(), ss.getLocalPort());
 		}
 
-		public void addOSCListener( OSCListener listener )
-		{
-			synchronized( collListeners ) {
-				collListeners.add( listener );
+		public void addOSCListener(OSCListener listener) {
+			synchronized (collListeners) {
+				collListeners.add(listener);
 			}
 		}
-		
-		public void removeOSCListener( OSCListener listener )
-		{
-			synchronized( collListeners ) {
-				collListeners.remove( listener );
+
+		public void removeOSCListener(OSCListener listener) {
+			synchronized (collListeners) {
+				collListeners.remove(listener);
 			}
 		}
-		
-		public void setCodec( OSCPacketCodec c )
-		{
-			OSCTransmitter trns;
-			synchronized( connSync ) {
-				for( Iterator<OSCTransmitter> iter = mapTrns.values().iterator(); iter.hasNext(); ) {
-					trns = (OSCTransmitter) iter.next();
-					if( trns.getCodec() == defaultCodec ) {
-						trns.setCodec( c );
+
+		public void setCodec(OSCPacketCodec c) {
+			synchronized (connSync) {
+				for (OSCTransmitter t : mapTrns.values()) {
+					if (t.getCodec() == defaultCodec) {
+						t.setCodec(c);
 					}
 				}
 			}
-			super.setCodec( c );
+			super.setCodec(c);
 		}
 
-		public void setCodec( OSCPacketCodec c, SocketAddress target )
-		throws IOException
-		{
+		public void setCodec(OSCPacketCodec c, SocketAddress target)
+				throws IOException {
 			final OSCTransmitter trns;
-			
-			synchronized( connSync ) {
-				trns = (OSCTransmitter) mapTrns.get( target );
+
+			synchronized (connSync) {
+				trns = mapTrns.get(target);
 			}
-			if( trns == null ) throw new NotYetConnectedException();
+			if (trns == null) throw new NotYetConnectedException();
 		}
 
-		public OSCPacketCodec getCodec( SocketAddress target )
-		throws IOException
-		{
+		public OSCPacketCodec getCodec(SocketAddress target)
+				throws IOException {
 			final OSCTransmitter trns;
-			
-			synchronized( connSync ) {
-				trns = (OSCTransmitter) mapTrns.get( target );
+
+			synchronized (connSync) {
+				trns = mapTrns.get(target);
 			}
-			if( trns == null ) throw new NotYetConnectedException();
+			if (trns == null) throw new NotYetConnectedException();
 			return trns.getCodec();
 		}
 
 		public void start()
-		throws IOException
-		{
-			synchronized( startStopSync ) {
-				if( Thread.currentThread() == thread ) throw new IllegalStateException( "Cannot call startListening() in the server body thread" );
+				throws IOException {
+			synchronized (startStopSync) {
+				if (Thread.currentThread() == thread)
+					throw new IllegalStateException("Cannot call startListening() in the server body thread");
 
-				if( isListening && ((thread == null) || !thread.isAlive()) ) {
-					isListening			= false;
+				if (isListening && ((thread == null) || !thread.isAlive())) {
+					isListening = false;
 				}
-				if( !isListening ) {
-					isListening			= true;
-					thread				= new Thread( this, "TCPServerBody" );
-					thread.setDaemon( true );
+				if (!isListening) {
+					isListening = true;
+					thread = new Thread(this, "TCPServerBody");
+					thread.setDaemon(true);
 					thread.start();
 				}
 			}
 		}
 
 		public void stop()
-		throws IOException
-		{
-			synchronized( startStopSync ) {
-				if( Thread.currentThread() == thread ) throw new IllegalStateException( "Cannot call stopListening() in the server body thread" );
+				throws IOException {
+			synchronized (startStopSync) {
+				if (Thread.currentThread() == thread)
+					throw new IllegalStateException("Cannot call stopListening() in the server body thread");
 
-				if( isListening ) {
+				if (isListening) {
 					isListening = false;
-					if( (thread != null) && thread.isAlive() ) {
+					if ((thread != null) && thread.isAlive()) {
 						try {
-							synchronized( threadSync ) {
+							synchronized (threadSync) {
 								final SocketChannel guard;
 								guard = SocketChannel.open();
-								guard.connect( ssch.socket().getLocalSocketAddress() );
+								guard.connect(ssch.socket().getLocalSocketAddress());
 								guard.close();
-								threadSync.wait( 5000 );
+								threadSync.wait(5000);
 							}
-						}
-						catch( InterruptedException e2 ) {
-							Logger.getLogger("").log(Level.WARNING,"",e2);
-						}
-						catch( IOException e1 ) {
-							Logger.getLogger("").log(Level.WARNING,"",e1);
+						} catch (InterruptedException e2) {
+							Logger.getLogger("").log(Level.WARNING, "", e2);
+						} catch (IOException e1) {
+							Logger.getLogger("").log(Level.WARNING, "", e1);
 							throw e1;
-						}
-						finally {
-							if( (thread != null) && thread.isAlive() ) {
+						} finally {
+							if ((thread != null) && thread.isAlive()) {
 								try {
-									Logger.getLogger("").log(Level.WARNING,"TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")");
+									Logger.getLogger("").log(Level.WARNING, "TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")");
 									ssch.close();     // rude task killing
-								}
-								catch( IOException e3 ) {
-									Logger.getLogger("").log(Level.SEVERE,"TCPServerBody.stopListening 2: ",e3);
+								} catch (IOException e3) {
+									Logger.getLogger("").log(Level.SEVERE, "TCPServerBody.stopListening 2: ", e3);
 								}
 							}
 							thread = null;
@@ -869,209 +776,194 @@ implements OSCBidi
 		{
 			return isListening;
 		}
-		
-		public void send( OSCPacket p, SocketAddress target )
-		throws IOException
-		{
+
+		public void send(OSCPacket p, SocketAddress target)
+				throws IOException {
 			final OSCTransmitter trns;
-			
-			synchronized( connSync ) {
-				trns = (OSCTransmitter) mapTrns.get( target );
-				if( trns == null ) throw new NotYetConnectedException();
-				else if(!trns.isConnected()) {
+
+			synchronized (connSync) {
+				trns = mapTrns.get(target);
+				if (trns == null) throw new NotYetConnectedException();
+				else if (!trns.isConnected()) {
 					mapTrns.remove(target);
 					throw new NotYetConnectedException();
 				}
 			}
-		
-			trns.send( p );
-		}
-		
-		
-//		protected SelectableChannel getChannel()
-//		{
-//			return ssch;
-//		}
-		
-		@Override
-		public void sendAll(OSCPacket p) throws IOException {
-			for(OSCTransmitter t:mapTrns.values()) {
-				try {
-					t.send(p);
-				} catch (Exception e) {
-					continue;
-				}
-			}
+
+			trns.send(p);
 		}
 
-		public void dispose()
-		{
+		@Override
+		public void sendAll(OSCPacket p) throws IOException {
+			IOException ex = null;
+			for (OSCTransmitter t : mapTrns.values()) {
+				try {
+					t.send(p);
+				} catch (IOException ex1) {
+					ex = ex1;
+				}
+			}
+			if (ex != null) throw ex;
+		}
+
+		public void dispose() {
 			try {
 				stop();
-			}
-			catch( IOException e1 ) { /* ignored */ }
-			
+			} catch (IOException e1) { /* ignored */ }
+
 			try {
 				ssch.close();
-			}
-			catch( IOException e1 ) {
+			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
 		}
-		
-		private void stopAll()
-		{
-			synchronized( connSync ) {
-				for(OSCReceiver r:new LinkedList<OSCReceiver>(mapRcv.values())) {
+
+		private void stopAll() {
+			synchronized (connSync) {
+				for (OSCReceiver r : new LinkedList<OSCReceiver>(mapRcv.values())) {
 					r.dispose();
 				}
 				mapRcv.clear();
-				for(OSCTransmitter t:new LinkedList<OSCTransmitter>(mapTrns.values())) {
+				for (OSCTransmitter t : new LinkedList<OSCTransmitter>(mapTrns.values())) {
 					t.dispose();
 				}
 				mapTrns.clear();
 			}
 		}
 
-		public void setBufferSize( int size )
-		{
-			synchronized( connSync ) {
+		public void setBufferSize(int size) {
+			synchronized (connSync) {
 				bufSize = size;
-	
-				for( Iterator<OSCReceiver> iter = mapRcv.values().iterator(); iter.hasNext(); ) {
-					((OSCReceiver) iter.next()).setBufferSize( size );
+
+				for (OSCReceiver oscReceiver : mapRcv.values()) {
+					(oscReceiver).setBufferSize(size);
 				}
-				for( Iterator<OSCTransmitter> iter = mapTrns.values().iterator(); iter.hasNext(); ) {
-					((OSCTransmitter) iter.next()).setBufferSize( size );
+				for (OSCTransmitter oscTransmitter : mapTrns.values()) {
+					(oscTransmitter).setBufferSize(size);
 				}
 			}
 		}
 
-		public int getBufferSize()
-		{
-			synchronized( connSync ) {
+		public int getBufferSize() {
+			synchronized (connSync) {
 				return bufSize;
 			}
 		}
 
-		public void dumpIncomingOSC( int mode, PrintStream stream )
-		{
-			synchronized( connSync ) {
-				inMode		= mode;
-				inStream	= stream;
-				
-				for( Iterator<OSCReceiver> iter = mapRcv.values().iterator(); iter.hasNext(); ) {
-					((OSCReceiver) iter.next()).dumpOSC( mode, stream );
-				}
-			}
-		}
-		
-		public void dumpOutgoingOSC( int mode, PrintStream stream )
-		{
-			synchronized( connSync ) {
-				outMode		= mode;
-				outStream	= stream;
+		public void dumpIncomingOSC(int mode, PrintStream stream) {
+			synchronized (connSync) {
+				inMode 		= mode;
+				inStream 	= stream;
 
-				for( Iterator<OSCTransmitter> iter = mapTrns.values().iterator(); iter.hasNext(); ) {
-					((OSCTransmitter) iter.next()).dumpOSC( mode, stream );
+				for (OSCReceiver r : mapRcv.values()) {
+					r.dumpOSC(mode, stream);
 				}
 			}
 		}
 
-		public void run()
-		{
+		public void dumpOutgoingOSC(int mode, PrintStream stream) {
+			synchronized (connSync) {
+				outMode = mode;
+				outStream = stream;
+
+				for (OSCTransmitter t : mapTrns.values()) {
+					t.dumpOSC(mode, stream);
+				}
+			}
+		}
+
+		public void run() {
 			SocketAddress	sender;
 			SocketChannel	sch;
 			OSCReceiver		rcv;
 			OSCTransmitter	trns;
-			
+
 			try {
-listen:			while( isListening )
-				{
+				listen:
+				while (isListening) {
 					try {
-						sch		= ssch.accept();
-						if( !isListening ) break listen;
-						if( sch == null ) continue listen;
+						sch = ssch.accept();
+						if (!isListening) break listen;
+						if (sch == null) continue listen;
 
 						sender	= sch.socket().getRemoteSocketAddress();
-						
-						synchronized( connSync ) {
+
+						synchronized (connSync) {
 							InetSocketAddress local = (InetSocketAddress) sch.getLocalAddress();
-							InetSocketAddress remote = (InetSocketAddress) sch.getRemoteAddress();
-							for(OSCConnectionListener l : connListeners) {
+							InetSocketAddress remote = (sender instanceof InetSocketAddress) ? (InetSocketAddress) sender : null;
+
+							for (OSCConnectionListener l : connListeners) {
 								l.onConnected(local, remote);
 							}
-							rcv		= OSCReceiver.newUsing( defaultCodec, sch );
-							rcv.setBufferSize( bufSize );
-							mapRcv.put( sender, rcv );
+
+							rcv = OSCReceiver.newUsing(defaultCodec, sch);
+							rcv.setBufferSize(bufSize);
+							mapRcv.put(sender, rcv);
+
 							rcv.addConnectionListener(new OSCConnectionListener() {
-								
+
 								@Override
 								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
 									mapRcv.remove(remote);
-									for(OSCConnectionListener l : connListeners) {
+									for (OSCConnectionListener l : connListeners) {
 										l.onDisconnected(local, remote);
 									}
 								}
-								
+
 								@Override
 								public void onConnected(InetSocketAddress local, InetSocketAddress remote) {
-									
+
 								}
 							});
-							trns	= OSCTransmitter.newUsing( defaultCodec, sch );
-							trns.setBufferSize( bufSize );
-							mapTrns.put( sender, trns );
+
+							trns = OSCTransmitter.newUsing(defaultCodec, sch);
+							trns.setBufferSize(bufSize);
+							mapTrns.put(sender, trns);
+
 							trns.addConnectionListener(new OSCConnectionListener() {
-								
+
 								@Override
 								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
 									mapTrns.remove(remote);
-									for(OSCConnectionListener l : connListeners) {
+									for (OSCConnectionListener l : connListeners) {
 										l.onDisconnected(local, remote);
 									}
 								}
-								
+
 								@Override
 								public void onConnected(InetSocketAddress local, InetSocketAddress remote) {
-									
+
 								}
 							});
-							rcv.dumpOSC( inMode, inStream );
-							trns.dumpOSC( outMode, outStream );
-							rcv.addOSCListener( this );
+
+							rcv	.dumpOSC(inMode	, inStream);
+							trns.dumpOSC(outMode, outStream);
+							rcv.addOSCListener(this);
 							rcv.startListening();
 						}
-					}
-					catch( ClosedChannelException e11 ) {	// bye bye, we have to quit
-						if( isListening ) {
-							Logger.getLogger("").log(Level.WARNING,"",e11);
+					} catch (ClosedChannelException e11) {    // bye bye, we have to quit
+						if (isListening) {
+							Logger.getLogger("").log(Level.WARNING, "", e11);
 						}
 						return;
-					}
-					catch( IOException e1 ) {
-						if( isListening ) {
-							Logger.getLogger("").log(Level.WARNING,"",e1);
+					} catch (IOException e1) {
+						if (isListening) {
+							Logger.getLogger("").log(Level.WARNING, "", e1);
 						}
 					}
 				} // while( isListening )
-			}
-			finally {
-				synchronized( threadSync ) {
+			} finally {
+				synchronized (threadSync) {
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
 			}
 		}
-		
-		public void messageReceived( OSCMessage msg, SocketAddress sender, long time )
-		{
-			OSCListener listener;
 
-			synchronized( collListeners ) {
-				for( int i = 0; i < collListeners.size(); i++ ) {
-					listener = (OSCListener) collListeners.get( i );
-					listener.messageReceived( msg, sender, time );
+		public void messageReceived(OSCMessage msg, SocketAddress sender, long time) {
+			synchronized (collListeners) {
+				for (OSCListener listener : collListeners) {
+					listener.messageReceived(msg, sender, time);
 				}
 			}
 		}

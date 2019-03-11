@@ -1,47 +1,14 @@
 /*
- *  OSCReceiver.java
- *  de.sciss.net (NetUtil)
+ *  OSCReceiver.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		25-Jan-05	created from de.sciss.meloncillo.net.OSCReceiver
- *		26-May-05	moved to de.sciss.net package
- *		21-Jun-05	extended javadoc, set/getDebugDump
- *		25-Jul-05	removed setSocketAddress in stopListening (test wise)
- *		05-Aug-05	added dumpOSC method. new contract regarding connected channels
- *		26-Aug-05	binding an unbound socket in the constructor uses
- *					InetAddress.getLocalHost() or "127.0.0.1" depending on the
- *					loopback status of the filtering address;
- *					; new empty constructor ; corrected synchronized statements
- *					in add/removeOSCListener ; extends AbstractOSCCommunicator
- *		11-Sep-05	the message dispatcher catches runtime exceptions in the listeners ,
- *					therefore making it behave more like the usual awt event dispatchers
- *					and not killing the listening thread
- *		30-Jul-06	fixed a potential sync problem ; throws exceptions in start/stopListening
- *					when calling from an illegal thread
- *		30-Sep-06	made abstract (unfortunately not backward compatible), finished TCP support
- *		14-Oct-06	revivable channels
- *		02-Jul-07	added codec based factory methods
  */
 
 package de.sciss.net;
@@ -66,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import java.util.Map;
 
 /**
  *  An <code>OSCReceiver</code> manages reception
@@ -170,27 +136,23 @@ import java.util.logging.Logger;
  *	address &quot;127.0.0.1&quot; as the filtering address or bind the socket to the loop
  *	address manually before calling <code>new OSCReceiver()</code>.
  *
- *  @author		Hanns Holger Rutz
- *  @version	0.37, 12-May-09
+ *	<b>Synchronization:</b>	starting and stopping and listener registration
+ *						is thread safe. starting and stopping listening is thread safe
+ *						but must not be carried out in the OSC receiver thread.
  *
  *	@see				OSCClient
  *	@see				OSCServer
  *	@see				OSCTransmitter
  *
- *	@synchronization	starting and stopping and listener registration
- *						is thread safe. starting and stopping listening is thread safe
- *						but must not be carried out in the OSC receiver thread.
- *	@todo				an explicit disconnect method might be useful
- *						(this is implicitly done when calling dispose)
  */
 public abstract class OSCReceiver
-implements OSCChannel, Runnable
-{
+        implements OSCChannel, Runnable {
+
+    // TODO an explicit disconnect method might be useful (this is implicitly done when calling dispose)
+
 	private   final List<OSCListener>					collListeners   = new ArrayList<OSCListener>();
 	protected final List<OSCConnectionListener>         connListeners   = new ArrayList<OSCConnectionListener>();
 	protected Thread					thread			= null;
-
-//	private Map							map				= null;
 
 	protected final Object				generalSync		= new Object();	// mutual exclusion startListening / stopListening
 	protected final Object				threadSync		= new Object();	// communication with receiver thread
@@ -213,8 +175,7 @@ implements OSCChannel, Runnable
 
 	protected SocketAddress				target			= null;
 
-	protected OSCReceiver( OSCPacketCodec c, String protocol, InetSocketAddress localAddress, boolean revivable )
-	{
+	protected OSCReceiver(OSCPacketCodec c, String protocol, InetSocketAddress localAddress, boolean revivable) {
 		this.c				= c;
 		this.protocol		= protocol;
 		this.localAddress	= localAddress;
@@ -241,10 +202,9 @@ implements OSCChannel, Runnable
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
 	 */
-	public static OSCReceiver newUsing( String protocol )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol );
+	public static OSCReceiver newUsing(String protocol)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol);
 	}
 	
 	/**
@@ -267,13 +227,10 @@ implements OSCChannel, Runnable
 	 *	@see	OSCChannel#UDP
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCReceiver newUsing( OSCPacketCodec c, String protocol )
-	throws IOException
-	{
-		return newUsing( c, protocol, 0 );
+	public static OSCReceiver newUsing(OSCPacketCodec c, String protocol)
+			throws IOException {
+		return newUsing(c, protocol, 0);
 	}
 	
 	/**
@@ -296,10 +253,9 @@ implements OSCChannel, Runnable
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCReceiver newUsing( String protocol, int port )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, 0 );
+	public static OSCReceiver newUsing(String protocol, int port)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, 0);
 	}
 
 	/**
@@ -322,13 +278,10 @@ implements OSCChannel, Runnable
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCReceiver newUsing( OSCPacketCodec c, String protocol, int port )
-	throws IOException
-	{
-		return newUsing( c, protocol, 0, false );
+	public static OSCReceiver newUsing(OSCPacketCodec c, String protocol, int port)
+			throws IOException {
+		return newUsing(c, protocol, 0, false);
 	}
 
 	/**
@@ -357,10 +310,9 @@ implements OSCChannel, Runnable
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCReceiver newUsing( String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack );
+	public static OSCReceiver newUsing(String protocol, int port, boolean loopBack)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack);
 	}
 
 	/**
@@ -389,16 +341,11 @@ implements OSCChannel, Runnable
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCReceiver newUsing( OSCPacketCodec c, String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-//		final InetSocketAddress localAddress = loopBack ? new InetSocketAddress( "127.0.0.1", port ) :
-//			  new InetSocketAddress( InetAddress.getLocalHost(), port );
-		final InetSocketAddress localAddress = new InetSocketAddress( loopBack ? "127.0.0.1" : "0.0.0.0", port );
-		return newUsing( c, protocol, localAddress );
+	public static OSCReceiver newUsing(OSCPacketCodec c, String protocol, int port, boolean loopBack)
+			throws IOException {
+		final InetSocketAddress localAddress = new InetSocketAddress(loopBack ? "127.0.0.1" : "0.0.0.0", port);
+		return newUsing(c, protocol, localAddress);
 	}
 
 	/**
@@ -425,10 +372,9 @@ implements OSCChannel, Runnable
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCReceiver newUsing( String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, localAddress );
+	public static OSCReceiver newUsing(String protocol, InetSocketAddress localAddress)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, localAddress);
 	}
 
 	/**
@@ -455,20 +401,17 @@ implements OSCChannel, Runnable
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCReceiver newUsing( OSCPacketCodec c, String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		if( protocol.equals( UDP )) {
-			return new UDPOSCReceiver( c, localAddress );
-			
-		} else if( protocol.equals( TCP )) {
-			return new TCPOSCReceiver( c, localAddress );
-			
+	public static OSCReceiver newUsing(OSCPacketCodec c, String protocol, InetSocketAddress localAddress)
+			throws IOException {
+		if (protocol.equals(UDP)) {
+			return new UDPOSCReceiver(c, localAddress);
+
+		} else if (protocol.equals(TCP)) {
+			return new TCPOSCReceiver(c, localAddress);
+
 		} else {
-			throw new IllegalArgumentException( NetUtil.getResourceString( "errUnknownProtocol" ) + protocol );
+			throw new IllegalArgumentException(NetUtil.getResourceString("errUnknownProtocol") + protocol);
 		}
 	}
 
@@ -488,10 +431,9 @@ implements OSCChannel, Runnable
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
 	 */
-	public static OSCReceiver newUsing( DatagramChannel dch )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), dch );
+	public static OSCReceiver newUsing(DatagramChannel dch)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), dch);
 	}
 
 	/**
@@ -510,13 +452,10 @@ implements OSCChannel, Runnable
 	 *	@return				the newly created receiver
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCReceiver newUsing( OSCPacketCodec c, DatagramChannel dch )
-	throws IOException
-	{
-		return new UDPOSCReceiver( c, dch );
+	public static OSCReceiver newUsing(OSCPacketCodec c, DatagramChannel dch)
+			throws IOException {
+		return new UDPOSCReceiver(c, dch);
 	}
 
 	/**
@@ -536,10 +475,9 @@ implements OSCChannel, Runnable
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
 	 */
-	public static OSCReceiver newUsing( SocketChannel sch )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), sch );
+	public static OSCReceiver newUsing(SocketChannel sch)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), sch);
 	}
 
 	/**
@@ -559,13 +497,10 @@ implements OSCChannel, Runnable
 	 *	@return				the newly created receiver
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCReceiver newUsing( OSCPacketCodec c, SocketChannel sch )
-	throws IOException
-	{
-		return new TCPOSCReceiver( c, sch );
+	public static OSCReceiver newUsing(OSCPacketCodec c, SocketChannel sch)
+			throws IOException {
+		return new TCPOSCReceiver(c, sch);
 	}
 
 	public String getProtocol()
@@ -597,10 +532,9 @@ implements OSCChannel, Runnable
 	 */
 	public abstract InetSocketAddress getLocalAddress() throws IOException;
 
-	public abstract void setTarget( SocketAddress target );
-	
-	public void setCodec( OSCPacketCodec c )
-	{
+	public abstract void setTarget(SocketAddress target);
+
+	public void setCodec(OSCPacketCodec c) {
 		this.c = c;
 	}
 	
@@ -616,11 +550,10 @@ implements OSCChannel, Runnable
 	 *
 	 *  @param  listener	the listener to register
 	 */
-	public void addOSCListener( OSCListener listener )
-	{
-		synchronized( collListeners ) {
-			if( collListeners.contains( listener )) return;
-			collListeners.add( listener );
+	public void addOSCListener(OSCListener listener) {
+		synchronized (collListeners) {
+			if (collListeners.contains(listener)) return;
+			collListeners.add(listener);
 		}
 	}
 
@@ -631,10 +564,9 @@ implements OSCChannel, Runnable
 	 *  @param  listener	the listener to remove from
 	 *						the list of notified objects.
 	 */
-	public void removeOSCListener( OSCListener listener )
-	{
-		synchronized( collListeners ) {
-			collListeners.remove( listener );
+	public void removeOSCListener(OSCListener listener) {
+		synchronized (collListeners) {
+			collListeners.remove(listener);
 		}
 	}
 
@@ -677,19 +609,19 @@ implements OSCChannel, Runnable
 	 *									(which would obviously cause a loop)
 	 */
 	public void startListening()
-	throws IOException
-	{
-		synchronized( generalSync ) {
-			if( Thread.currentThread() == thread ) throw new IllegalStateException( NetUtil.getResourceString( "errNotInThisThread" ));
+			throws IOException {
+		synchronized (generalSync) {
+			if (Thread.currentThread() == thread)
+				throw new IllegalStateException(NetUtil.getResourceString("errNotInThisThread"));
 
-			if( isListening && ((thread == null) || !thread.isAlive()) ) {
-				isListening		= false;
+			if (isListening && ((thread == null) || !thread.isAlive())) {
+				isListening = false;
 			}
-			if( !isListening ) {
-				if( !isConnected() ) connect();
-				isListening		= true;
-				thread			= new Thread( this, "OSCReceiver" );
-				thread.setDaemon( true );
+			if (!isListening) {
+				if (!isConnected()) connect();
+				isListening = true;
+				thread = new Thread(this, "OSCReceiver");
+				thread.setDaemon(true);
 				thread.start();
 			}
 		}
@@ -699,9 +631,8 @@ implements OSCChannel, Runnable
 	 *	Queries whether the <code>OSCReceiver</code> is
 	 *	listening or not.
 	 */
-	public boolean isListening()
-	{
-        synchronized( generalSync ) {
+	public boolean isListening() {
+		synchronized (generalSync) {
 			return isListening;
 		}
 	}
@@ -720,37 +651,29 @@ implements OSCChannel, Runnable
 	 *									(which would obviously cause a loop)
 	 */
 	public void stopListening()
-	throws IOException
-	{
-        synchronized( generalSync ) {
-			if( Thread.currentThread() == thread ) throw new IllegalStateException( NetUtil.getResourceString( "errNotInThisThread" ));
+			throws IOException {
+		synchronized (generalSync) {
+			if (Thread.currentThread() == thread)
+				throw new IllegalStateException(NetUtil.getResourceString("errNotInThisThread"));
 
-			if( isListening ) {
+			if (isListening) {
 				isListening = false;
-				if( (thread != null) && thread.isAlive() ) {
+				if ((thread != null) && thread.isAlive()) {
 					try {
-						synchronized( threadSync ) {
+						synchronized (threadSync) {
 							sendGuardSignal();
-//							guard.send( guardPacket );
-							threadSync.wait( 5000 );
+//							guard.send(guardPacket);
+							threadSync.wait(5000);
 						}
-					}
-					catch( InterruptedException e2 ) {
-						Logger.getLogger("").log(Level.INFO,"",e2);
-					}
-//					catch( IOException e1 ) {
-//						System.err.println( "OSCReceiver.stopListening : "+e1 );
-//						throw e1;
-//					}
-					finally {
-						if( (thread != null) && thread.isAlive() ) {
+					} catch (InterruptedException e2) {
+						Logger.getLogger("").log(Level.INFO, "", e2);
+					} finally {
+						if ((thread != null) && thread.isAlive()) {
 							try {
-								Logger.getLogger("").log(Level.INFO,  "OSCReceiver.stopListening : rude task killing (" + this.hashCode() + ")" );
-//								ch.close();     // rude task killing
+								Logger.getLogger("").log(Level.INFO, "OSCReceiver.stopListening : rude task killing (" + this.hashCode() + ")");
 								closeChannel();
-							}
-							catch( IOException e3 ) {
-								Logger.getLogger("").log(Level.INFO,"",e3);
+							} catch (IOException e3) {
+								Logger.getLogger("").log(Level.INFO, "", e3);
 							}
 						}
 						thread = null;
@@ -760,155 +683,111 @@ implements OSCChannel, Runnable
 		}
 	}
 
-	public void setBufferSize( int size )
-	{
-		synchronized( bufSync ) {
-			if( isListening ) throw new IllegalStateException( NetUtil.getResourceString( "errNotWhileActive" ));
-			if( bufSize != size ) {
-				bufSize		= size;
-				allocBuf	= true;
+	public void setBufferSize(int size) {
+		synchronized (bufSync) {
+			if (isListening) throw new IllegalStateException(NetUtil.getResourceString("errNotWhileActive"));
+			if (bufSize != size) {
+				bufSize = size;
+				allocBuf = true;
 			}
 		}
 	}
 
-	public int getBufferSize()
-	{
-		synchronized( bufSync ) {
+	public int getBufferSize() {
+		synchronized (bufSync) {
 			return bufSize;
 		}
 	}
 
-	public void dumpOSC( int mode, PrintStream stream )
-	{
-		this.dumpMode		= mode;
-		this.printStream	= stream == null ? System.err : stream;
+	public void dumpOSC(int mode, PrintStream stream) {
+		this.dumpMode 		= mode;
+		this.printStream 	= stream == null ? System.err : stream;
 	}
 
-	public void dispose()
-	{
+	public void dispose() {
 		try {
 			stopListening();
-		}
-		catch( IOException e1 ) {
+		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 		try {
-//			ch.close();
 			closeChannel();
-		}
-		catch( IOException e1 ) {
+		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 		collListeners.clear();
-		byteBuf	= null;
+		byteBuf = null;
 	}
-	
-//   /**
-//     *  Call this method to supply a map of custom
-//     *  OSCMessage subclasses used for decoding received
-//     *  messages.
-//     *
-//     *  @param  map a map whose keys are OSC command strings and whose
-//     *              values are <code>OSCMessage</code> subclasses which will
-//     *              be used for decoding in case the OSC command
-//     *              matches the map entry. For instance you might
-//     *              want to have a key <code>"/b_setn"</code> and a special subclass
-//     *              <code>OSCBufSetNMessage</code> for faster and efficient decoding
-//     *              of this type of OSC message.
-//	 *
-//	 *	@deprecated	a future version will feature special codec classes which are
-//	 *				not subclasses of <code>OSCMessage</code>! Prepare for API change!
-//     */
-//    public void setCustomMessageDecoders( Map map )
-//    {
-//        this.map = map;
-//    }
 
 	protected abstract void sendGuardSignal() throws IOException;
-	
-	protected abstract void setChannel( SelectableChannel ch ) throws IOException;
+
+	protected abstract void setChannel(SelectableChannel ch) throws IOException;
 
 	protected abstract void closeChannel() throws IOException;
 
-	protected static String debugTimeString()
-	{
-		return new java.text.SimpleDateFormat( "HH:mm:ss.SSS" ).format( new java.util.Date() );
+	protected static String debugTimeString() {
+		return new java.text.SimpleDateFormat("HH:mm:ss.SSS").format(new java.util.Date());
 	}
 
-	protected void flipDecodeDispatch( SocketAddress sender )
-	throws IOException
-	{
+	protected void flipDecodeDispatch(SocketAddress sender)
+			throws IOException {
 		final OSCPacket p;
 
 		try {
 			byteBuf.flip();
-//			p = OSCPacket.decode( byteBuf, map );
-//			p = OSCPacket.decode( byteBuf );
-			p = c.decode( byteBuf );
-			
-			if( dumpMode != kDumpOff ) {
-				printStream.print( "r: " );
-				if( (dumpMode & kDumpText) != 0 ) OSCPacket.printTextOn( printStream, p );
-				if( (dumpMode & kDumpHex)  != 0 ) {
+			p = c.decode(byteBuf);
+
+			if (dumpMode != kDumpOff) {
+				printStream.print("r: ");
+				if ((dumpMode & kDumpText) != 0) OSCPacket.printTextOn(printStream, p);
+				if ((dumpMode & kDumpHex) != 0) {
 					byteBuf.flip();
-					OSCPacket.printHexOn( printStream, byteBuf );
+					OSCPacket.printHexOn(printStream, byteBuf);
 				}
 			}
-			dispatchPacket( p, sender, OSCBundle.NOW );	// OSCBundles will override this dummy time tag
-		}
-		catch( BufferUnderflowException e1 ) {
-			if( isListening ) {
+			dispatchPacket(p, sender, OSCBundle.NOW);    // OSCBundles will override this dummy time tag
+
+		} catch (BufferUnderflowException e1) {
+			if (isListening) {
 				Logger.getLogger("").log(Level.SEVERE, "", e1);
 			}
 		}
 	}
 
-	private void dispatchPacket( OSCPacket p, SocketAddress sender, long time )
-	{
-		if( p instanceof OSCMessage ) {
-			dispatchMessage( (OSCMessage) p, sender, time );
-		} else if( p instanceof OSCBundle ) {
-			final OSCBundle bndl	= (OSCBundle) p;
-			time					= bndl.getTimeTag();
-			for( int i = 0; i < bndl.getPacketCount(); i++ ) {
-				dispatchPacket( bndl.getPacket( i ), sender, time );
+	private void dispatchPacket(OSCPacket p, SocketAddress sender, long time) {
+		if (p instanceof OSCMessage) {
+			dispatchMessage((OSCMessage) p, sender, time);
+		} else if (p instanceof OSCBundle) {
+			final OSCBundle bndl = (OSCBundle) p;
+			time = bndl.getTimeTag();
+			for (int i = 0; i < bndl.getPacketCount(); i++) {
+				dispatchPacket(bndl.getPacket(i), sender, time);
 			}
 		} else {
 			assert false : p.getClass().getName();
 		}
 	}
 
-	private void dispatchMessage( OSCMessage msg, SocketAddress sender, long time )
-	{
-		OSCListener listener;
-
-		synchronized( collListeners ) {
-			for( int i = 0; i < collListeners.size(); i++ ) {
-				listener = (OSCListener) collListeners.get( i );
-//				try {
-					listener.messageReceived( msg, sender, time );
-//				}
-//				catch( java.lang.RuntimeException e1 ) {
-//					e1.printStackTrace();
-//				}
+	private void dispatchMessage(OSCMessage msg, SocketAddress sender, long time) {
+		synchronized (collListeners) {
+			for (OSCListener listener : collListeners) {
+				listener.messageReceived(msg, sender, time);
 			}
 		}
 	}
-	
-	protected void checkBuffer()
-	{
-		synchronized( bufSync ) {
-			if( allocBuf ) {
-				byteBuf	= ByteBuffer.allocateDirect( bufSize );
+
+	protected void checkBuffer() {
+		synchronized (bufSync) {
+			if (allocBuf) {
+				byteBuf = ByteBuffer.allocateDirect(bufSize);
 				allocBuf = false;
 			}
 		}
 	}
 
-	protected InetSocketAddress getLocalAddress( InetAddress addr, int port )
-	throws UnknownHostException
-	{
-		return new InetSocketAddress( addr.getHostName().equals( "0.0.0.0" ) ? InetAddress.getLocalHost() : addr, port );
+	protected InetSocketAddress getLocalAddress(InetAddress addr, int port)
+			throws UnknownHostException {
+		return new InetSocketAddress(addr.getHostName().equals("0.0.0.0") ? InetAddress.getLocalHost() : addr, port);
 	}
 
 	/**
@@ -936,7 +815,6 @@ implements OSCChannel, Runnable
 	 *
 	 *	@see	#isConnected()
 	 *	@see	#startListening()
-	 *	@throws IOException
 	 */
 	public abstract void connect() throws IOException;
 	
@@ -954,93 +832,85 @@ implements OSCChannel, Runnable
 	// --------------------- internal classes ---------------------
 
 	private static class UDPOSCReceiver
-	extends OSCReceiver
-	{
-		private DatagramChannel	dch;
-	
-		protected UDPOSCReceiver( OSCPacketCodec c, InetSocketAddress localAddress )
-		throws IOException
-		{
-			super( c, UDP, localAddress, true );
+			extends OSCReceiver {
+
+		private DatagramChannel dch;
+
+		protected UDPOSCReceiver(OSCPacketCodec c, InetSocketAddress localAddress)
+				throws IOException {
+			super(c, UDP, localAddress, true);
 		}
-		
-		protected UDPOSCReceiver( OSCPacketCodec c, DatagramChannel dch )
-		throws IOException
-		{
-			super( c, UDP, new InetSocketAddress( dch.socket().getLocalAddress(), dch.socket().getLocalPort() ), false );
-			
-			this.dch	= dch;
+
+		protected UDPOSCReceiver(OSCPacketCodec c, DatagramChannel dch)
+				throws IOException {
+			super(c, UDP, new InetSocketAddress(dch.socket().getLocalAddress(), dch.socket().getLocalPort()), false);
+
+			this.dch = dch;
 		}
-		
-		protected void setChannel( SelectableChannel ch )
-		throws IOException
-		{
-			synchronized( generalSync ) {
-				if( isListening ) throw new IllegalStateException( NetUtil.getResourceString( "errNotWhileActive" ));
-		
-				dch	= (DatagramChannel) ch;
-				if( !dch.isBlocking() ) {
-					dch.configureBlocking( true );
+
+		protected void setChannel(SelectableChannel ch)
+				throws IOException {
+			synchronized (generalSync) {
+				if (isListening) throw new IllegalStateException(NetUtil.getResourceString("errNotWhileActive"));
+
+				dch = (DatagramChannel) ch;
+				if (!dch.isBlocking()) {
+					dch.configureBlocking(true);
 				}
-				if( dch.isConnected() ) throw new IllegalStateException( NetUtil.getResourceString( "errChannelConnected" ));
+				if (dch.isConnected())
+					throw new IllegalStateException(NetUtil.getResourceString("errChannelConnected"));
 			}
 		}
-		
+
 		public InetSocketAddress getLocalAddress()
-		throws IOException
-		{
-			synchronized( generalSync ) {
-				if( dch != null ) {
+				throws IOException {
+			synchronized (generalSync) {
+				if (dch != null) {
 					final DatagramSocket ds = dch.socket();
-					return getLocalAddress( ds.getLocalAddress(), ds.getLocalPort() );
+					return getLocalAddress(ds.getLocalAddress(), ds.getLocalPort());
 				} else {
-					return getLocalAddress( localAddress.getAddress(), localAddress.getPort() );
+					return getLocalAddress(localAddress.getAddress(), localAddress.getPort());
 				}
 			}
 		}
 
-		public void setTarget( SocketAddress target )
-		{
-			this.target	= target;
+		public void setTarget(SocketAddress target) {
+			this.target = target;
 		}
-		
-		public void connect()
-		throws IOException
-		{
-			synchronized( generalSync ) {
-				if( isListening ) throw new IllegalStateException( NetUtil.getResourceString( "errNotWhileActive" ));
 
-				if( (dch != null) && !dch.isOpen() ) {
-					if( !revivable ) throw new IOException( NetUtil.getResourceString( "errCannotRevive" ));
+		public void connect()
+				throws IOException {
+			synchronized (generalSync) {
+				if (isListening) throw new IllegalStateException(NetUtil.getResourceString("errNotWhileActive"));
+
+				if ((dch != null) && !dch.isOpen()) {
+					if (!revivable) throw new IOException(NetUtil.getResourceString("errCannotRevive"));
 					dch = null;
 				}
-				if( dch == null ) {
+				if (dch == null) {
 					final DatagramChannel newCh = DatagramChannel.open();
-					newCh.socket().bind( localAddress );
+					newCh.socket().bind(localAddress);
 //					dch = newCh;
-					setChannel( newCh );
+					setChannel(newCh);
 				}
-				for(OSCConnectionListener l : connListeners) {
+				for (OSCConnectionListener l : connListeners) {
 					l.onConnected(localAddress, (InetSocketAddress) target);
 				}
 			}
 		}
 
-		public boolean isConnected()
-		{
-			synchronized( generalSync ) {
-				return( (dch != null) && dch.isOpen() );
+		public boolean isConnected() {
+			synchronized (generalSync) {
+				return ((dch != null) && dch.isOpen());
 			}
 		}
 
 		protected void closeChannel()
-		throws IOException
-		{
-			if( dch != null ) {
+				throws IOException {
+			if (dch != null) {
 				try {
 					dch.close();
-				}
-				finally {
+				} finally {
 					dch = null;
 				}
 			}
@@ -1049,211 +919,190 @@ implements OSCChannel, Runnable
 		/**
 		 *	This is the body of the listening thread
 		 */
-		public void run()
-		{
+		public void run() {
 			SocketAddress sender;
-		
+
 			checkBuffer();
 
 			try {
-listen:			while( isListening )
-				{
+				listen:
+				while (isListening) {
 					try {
 						byteBuf.clear();
-						sender = dch.receive( byteBuf );
+						sender = dch.receive(byteBuf);
 
-						if( !isListening ) break listen;
-						if( sender == null ) continue listen;
-						if( (target != null) && !target.equals( sender )) continue listen;
-						
-						flipDecodeDispatch( sender );
-					}
-					catch( ClosedChannelException e1 ) {	// bye bye, we have to quit
-						if( isListening ) {
-//							System.err.println( e1 );
-							Logger.getLogger("").log(Level.WARNING,"",e1);
+						if (!isListening) 								break 		listen;
+						if (sender == null) 							continue	listen;
+						if ((target != null) && !target.equals(sender)) continue 	listen;
+
+						flipDecodeDispatch(sender);
+					} catch (ClosedChannelException e1) {    // bye bye, we have to quit
+						if (isListening) {
+							Logger.getLogger("").log(Level.WARNING, "", e1);
 						}
 						return;
-					}
-					catch( IOException e1 ) {
-						if( isListening ) {
-							Logger.getLogger("").log(Level.WARNING,"",e1);
-//							System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
+					} catch (IOException e1) {
+						if (isListening) {
+							Logger.getLogger("").log(Level.WARNING, "", e1);
 						}
 					}
 				} // while( isListening )
-			}
-			finally {
-				synchronized( threadSync ) {
+			} finally {
+				synchronized (threadSync) {
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
-				for(OSCConnectionListener l : connListeners) {
+				for (OSCConnectionListener l : connListeners) {
 					l.onDisconnected(localAddress, (InetSocketAddress) target);
 				}
 			}
 		}
-		
+
 		protected void sendGuardSignal()
-		throws IOException
-		{
+				throws IOException {
 			final DatagramSocket	guard;
 			final DatagramPacket	guardPacket;
-			
-			guard		= new DatagramSocket();
-			guardPacket	= new DatagramPacket( new byte[0], 0 );
-			guardPacket.setSocketAddress( getLocalAddress() );
-			guard.send( guardPacket );
+
+			guard = new DatagramSocket();
+			guardPacket = new DatagramPacket(new byte[0], 0);
+			guardPacket.setSocketAddress(getLocalAddress());
+			guard.send(guardPacket);
 			guard.close();
 		}
 	}
 
 	private static class TCPOSCReceiver
-	extends OSCReceiver
-	{
-		private SocketChannel	sch		= null;
-	
-		protected TCPOSCReceiver( OSCPacketCodec c, InetSocketAddress localAddress )
-		{
-			super( c, TCP, localAddress, true );
-		}
-		
-		protected TCPOSCReceiver( OSCPacketCodec c, SocketChannel sch )
-		{
-			super( c, TCP, new InetSocketAddress( sch.socket().getLocalAddress(), sch.socket().getLocalPort() ), false );
-			
-			this.sch	= sch;
+			extends OSCReceiver {
+
+		private SocketChannel sch = null;
+
+		protected TCPOSCReceiver(OSCPacketCodec c, InetSocketAddress localAddress) {
+			super(c, TCP, localAddress, true);
 		}
 
-		protected void setChannel( SelectableChannel ch )
-		throws IOException
-		{
-			synchronized( generalSync ) {
-				if( isListening ) throw new IllegalStateException( NetUtil.getResourceString( "errNotWhileActive" ));
-		
-				sch	= (SocketChannel) ch;
-				if( !sch.isBlocking() ) {
-					sch.configureBlocking( true );
+		protected TCPOSCReceiver(OSCPacketCodec c, SocketChannel sch) {
+			super(c, TCP, new InetSocketAddress(sch.socket().getLocalAddress(), sch.socket().getLocalPort()), false);
+
+			this.sch = sch;
+		}
+
+		protected void setChannel(SelectableChannel ch)
+				throws IOException {
+			synchronized (generalSync) {
+				if (isListening) throw new IllegalStateException(NetUtil.getResourceString("errNotWhileActive"));
+
+				sch = (SocketChannel) ch;
+				if (!sch.isBlocking()) {
+					sch.configureBlocking(true);
 				}
 			}
 		}
 
 		public InetSocketAddress getLocalAddress()
-		throws IOException
-		{
-			synchronized( generalSync ) {
-				if( sch != null ) {
+				throws IOException {
+			synchronized (generalSync) {
+				if (sch != null) {
 					final Socket s = sch.socket();
-					return getLocalAddress( s.getLocalAddress(), s.getLocalPort() );
+					return getLocalAddress(s.getLocalAddress(), s.getLocalPort());
 				} else {
-					return getLocalAddress( localAddress.getAddress(), localAddress.getPort() );
+					return getLocalAddress(localAddress.getAddress(), localAddress.getPort());
 				}
 			}
 		}
 
-		public void setTarget( SocketAddress target )
-		{
-			synchronized( generalSync ) {
-				if( isConnected() ) throw new AlreadyConnectedException();
-		
-				this.target	= target;
+		public void setTarget(SocketAddress target) {
+			synchronized (generalSync) {
+				if (isConnected()) throw new AlreadyConnectedException();
+
+				this.target = target;
 			}
 		}
 
 		public void connect()
-		throws IOException
-		{
-			synchronized( generalSync ) {
-				if( isListening ) throw new IllegalStateException( NetUtil.getResourceString( "errNotWhileActive" ));
+				throws IOException {
+			synchronized (generalSync) {
+				if (isListening) throw new IllegalStateException(NetUtil.getResourceString("errNotWhileActive"));
 
-				if( (sch != null) && !sch.isOpen() ) {
-					if( !revivable ) throw new IOException( NetUtil.getResourceString( "errCannotRevive" ));
+				if ((sch != null) && !sch.isOpen()) {
+					if (!revivable) throw new IOException(NetUtil.getResourceString("errCannotRevive"));
 					sch = null;
 				}
-				if( sch == null ) {
+				if (sch == null) {
 					final SocketChannel newCh = SocketChannel.open();
-					newCh.socket().bind( localAddress );
+					newCh.socket().bind(localAddress);
 					sch = newCh;
 				}
-				if( !sch.isConnected() ) {
-					sch.connect( target );
+				if (!sch.isConnected()) {
+					sch.connect(target);
 				}
-				for(OSCConnectionListener l : connListeners) {
+				for (OSCConnectionListener l : connListeners) {
 					l.onConnected(localAddress, (InetSocketAddress) target);
 				}
 			}
 		}
 
-		public boolean isConnected()
-		{
-			synchronized( generalSync ) {
-				return( (sch != null) && sch.isConnected() );
+		public boolean isConnected() {
+			synchronized (generalSync) {
+				return ((sch != null) && sch.isConnected());
 			}
 		}
 
 		protected void closeChannel()
-		throws IOException
-		{
-			if( sch != null ) {
+				throws IOException {
+			if (sch != null) {
 				try {
 					sch.close();
-				}
-				finally {
+				} finally {
 					sch = null;
 				}
 			}
 		}
 
-		public void run()
-		{
+		public void run() {
 			final SocketAddress sender = sch.socket().getRemoteSocketAddress();
-			int					len, packetSize;
-			
+			int len, packetSize;
+
 			checkBuffer();
-			
+
 			try {
-listen:			while( isListening ) {
+				listen:
+				while (isListening) {
 					try {
-						byteBuf.rewind().limit( 4 );	// in TCP mode, first four bytes are packet size in bytes
+						byteBuf.rewind().limit(4);    // in TCP mode, first four bytes are packet size in bytes
 						do {
-							len = sch.read( byteBuf );
-							if( len == -1 ) break listen;
-						} while( byteBuf.hasRemaining() );
-						
+							len = sch.read(byteBuf);
+							if (len == -1) break listen;
+						} while (byteBuf.hasRemaining());
+
 						byteBuf.rewind();
 						packetSize = byteBuf.getInt();
-						byteBuf.rewind().limit( packetSize );
-						
-						while( byteBuf.hasRemaining() ) {
-							len = sch.read( byteBuf );
-							if( len == -1 ) break listen;
+						byteBuf.rewind().limit(packetSize);
+
+						while (byteBuf.hasRemaining()) {
+							len = sch.read(byteBuf);
+							if (len == -1) break listen;
 						}
-						
-						flipDecodeDispatch( sender );
-//						flipDecodeDispatch( target );
-					}
-					catch( IllegalArgumentException e1 ) {	// thrown on illegal byteBuf.limit() calls
-						if( isListening ) {
-//							System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
-							final OSCException e2 = new OSCException( OSCException.RECEIVE, e1.toString() );
-							Logger.getLogger("").log(Level.WARNING,"",e2);
+
+						flipDecodeDispatch(sender);
+//						flipDecodeDispatch(target);
+					} catch (IllegalArgumentException e1) {    // thrown on illegal byteBuf.limit() calls
+						if (isListening) {
+							final OSCException e2 = new OSCException(OSCException.RECEIVE, e1.toString());
+							Logger.getLogger("").log(Level.WARNING, "", e2);
 						}
-					}
-					catch( ClosedChannelException e1 ) {	// bye bye, we have to quit
-						if( isListening ) {
-							Logger.getLogger("").log(Level.WARNING,"",e1);
+					} catch (ClosedChannelException e1) {    // bye bye, we have to quit
+						if (isListening) {
+							Logger.getLogger("").log(Level.WARNING, "", e1);
 						}
 						return;
-					}
-					catch( IOException e1 ) {
-						if( isListening ) {
-							Logger.getLogger("").log(Level.WARNING,"",e1);
+					} catch (IOException e1) {
+						if (isListening) {
+							Logger.getLogger("").log(Level.WARNING, "", e1);
 						}
 					}
 				}
-			}
-			finally {
-				synchronized( threadSync ) {
+			} finally {
+				synchronized (threadSync) {
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
@@ -1261,14 +1110,13 @@ listen:			while( isListening ) {
 		}
 
 		/**
-		 *	@warning	this calls socket().shutdownInput()
+		 *	<b>Warning:</b>	this calls socket().shutdownInput()
 		 *				to unblock the listening thread. unfortunately this
 		 *				cannot be undone, so it's not possible to revive the
 		 *				receiver in TCP mode ;-( have to check for alternative ways
 		 */
 		protected void sendGuardSignal()
-		throws IOException
-		{
+				throws IOException {
 			sch.socket().shutdownInput();
 		}
 	}

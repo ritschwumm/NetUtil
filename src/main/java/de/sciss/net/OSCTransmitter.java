@@ -1,32 +1,14 @@
 /*
- *  OSCTransmitter.java
- *  de.sciss.net (NetUtil)
+ *  OSCTransmitter.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		26-Aug-05	created
- *		30-Sep-06	made abstract (unfortunately not backward compatible), finished TCP support
- *		02-Jul-07	uses OSCPacketCodec, bugfix in newUsing( String, int )
  */
 
 package de.sciss.net;
@@ -66,20 +48,17 @@ import java.util.logging.Logger;
  *	renders direct instantiation impossible. <B>To update old code,</B> occurences of <code>new OSCTransmitter()</code>
  *	must be replaced by one of the <code>OSCTransmitter.newUsing</code> methods!
  *
- *  @author		Hanns Holger Rutz
- *  @version	0.33, 05-Mar-09
+ *	<b>Synchronization</b>	sending messages is thread safe
  *
  *	@see				OSCClient
  *	@see				OSCServer
  *	@see				OSCReceiver
- *
- *	@synchronization	sending messages is thread safe
- *	@todo				an explicit disconnect method might be useful
- *						(this is implicitly done when calling dispose)
  */
 public abstract class OSCTransmitter
-implements OSCChannel
-{
+		implements OSCChannel {
+
+	// TODO an explicit disconnect method might be useful (this is implicitly done when calling dispose)
+
 	protected final List<OSCConnectionListener>         connListeners   = new ArrayList<OSCConnectionListener>();
 	protected final Object				sync			= new Object();	// buffer (re)allocation
 	protected boolean					allocBuf		= true;
@@ -97,8 +76,7 @@ implements OSCChannel
 	protected final InetSocketAddress	localAddress;
 	protected final boolean				revivable;
 
-	protected OSCTransmitter( OSCPacketCodec c, String protocol, InetSocketAddress localAddress, boolean revivable )
-	{
+	protected OSCTransmitter(OSCPacketCodec c, String protocol, InetSocketAddress localAddress, boolean revivable) {
 		this.c				= c;
 		this.protocol		= protocol;
 		this.localAddress	= localAddress;
@@ -121,10 +99,9 @@ implements OSCChannel
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
 	 */
-	public static OSCTransmitter newUsing( String protocol )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol );
+	public static OSCTransmitter newUsing(String protocol)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol);
 	}
 
 	/**
@@ -143,13 +120,10 @@ implements OSCChannel
 	 *	@see	OSCChannel#UDP
 	 *	@see	OSCChannel#TCP
 	 *	@see	#getLocalAddress
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCTransmitter newUsing( OSCPacketCodec c, String protocol )
-	throws IOException
-	{
-		return newUsing( c, protocol, 0 );
+	public static OSCTransmitter newUsing(OSCPacketCodec c, String protocol)
+			throws IOException {
+		return newUsing(c, protocol, 0);
 	}
 
 	/**
@@ -166,10 +140,9 @@ implements OSCChannel
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCTransmitter newUsing( String protocol, int port )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, port );
+	public static OSCTransmitter newUsing(String protocol, int port)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, port);
 	}
 
 	/**
@@ -186,13 +159,10 @@ implements OSCChannel
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCTransmitter newUsing( OSCPacketCodec c, String protocol, int port )
-	throws IOException
-	{
-		return newUsing( c, protocol, port, false );
+	public static OSCTransmitter newUsing(OSCPacketCodec c, String protocol, int port)
+			throws IOException {
+		return newUsing(c, protocol, port, false);
 	}
 
 	/**
@@ -214,10 +184,9 @@ implements OSCChannel
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCTransmitter newUsing( String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack );
+	public static OSCTransmitter newUsing(String protocol, int port, boolean loopBack)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, port, loopBack);
 	}
 
 	/**
@@ -239,16 +208,11 @@ implements OSCChannel
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCTransmitter newUsing( OSCPacketCodec c, String protocol, int port, boolean loopBack )
-	throws IOException
-	{
-//		final InetSocketAddress localAddress = loopBack ? new InetSocketAddress( "127.0.0.1", port ) :
-//														  new InetSocketAddress( InetAddress.getLocalHost(), port );
-		final InetSocketAddress localAddress = new InetSocketAddress( loopBack ? "127.0.0.1" : "0.0.0.0", port );
-		return newUsing( c, protocol, localAddress );
+	public static OSCTransmitter newUsing(OSCPacketCodec c, String protocol, int port, boolean loopBack)
+			throws IOException {
+		final InetSocketAddress localAddress = new InetSocketAddress(loopBack ? "127.0.0.1" : "0.0.0.0", port);
+		return newUsing(c, protocol, localAddress);
 	}
 
 	/**
@@ -269,10 +233,9 @@ implements OSCChannel
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
 	 */
-	public static OSCTransmitter newUsing( String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), protocol, localAddress );
+	public static OSCTransmitter newUsing(String protocol, InetSocketAddress localAddress)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), protocol, localAddress);
 	}
 
 	/**
@@ -293,20 +256,17 @@ implements OSCChannel
 	 *
 	 *	@throws	IOException					if a networking error occurs while creating the socket
 	 *	@throws	IllegalArgumentException	if an illegal protocol is used
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCTransmitter newUsing( OSCPacketCodec c, String protocol, InetSocketAddress localAddress )
-	throws IOException
-	{
-		if( protocol.equals( UDP )) {
-			return new UDPOSCTransmitter( c, localAddress );
-			
-		} else if( protocol.equals( TCP )) {
-			return new TCPOSCTransmitter( c, localAddress );
-			
+	public static OSCTransmitter newUsing(OSCPacketCodec c, String protocol, InetSocketAddress localAddress)
+			throws IOException {
+		if (protocol.equals(UDP)) {
+			return new UDPOSCTransmitter(c, localAddress);
+
+		} else if (protocol.equals(TCP)) {
+			return new TCPOSCTransmitter(c, localAddress);
+
 		} else {
-			throw new IllegalArgumentException( NetUtil.getResourceString( "errUnknownProtocol" ) + protocol );
+			throw new IllegalArgumentException(NetUtil.getResourceString("errUnknownProtocol") + protocol);
 		}
 	}
 
@@ -324,10 +284,9 @@ implements OSCChannel
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
 	 */
-	public static OSCTransmitter newUsing( DatagramChannel dch )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), dch );
+	public static OSCTransmitter newUsing(DatagramChannel dch)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), dch);
 	}
 
 	/**
@@ -344,13 +303,10 @@ implements OSCChannel
 	 *	@return				the newly created transmitter
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCTransmitter newUsing( OSCPacketCodec c, DatagramChannel dch )
-	throws IOException
-	{
-		return new UDPOSCTransmitter( c, dch );
+	public static OSCTransmitter newUsing(OSCPacketCodec c, DatagramChannel dch)
+			throws IOException {
+		return new UDPOSCTransmitter(c, dch);
 	}
 
 	/**
@@ -369,10 +325,9 @@ implements OSCChannel
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
 	 */
-	public static OSCTransmitter newUsing( SocketChannel sch )
-	throws IOException
-	{
-		return newUsing( OSCPacketCodec.getDefaultCodec(), sch );
+	public static OSCTransmitter newUsing(SocketChannel sch)
+			throws IOException {
+		return newUsing(OSCPacketCodec.getDefaultCodec(), sch);
 	}
 
 	/**
@@ -391,13 +346,10 @@ implements OSCChannel
 	 *	@return				the newly created transmitter
 	 *
 	 *	@throws	IOException	if a networking error occurs while configuring the socket
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public static OSCTransmitter newUsing( OSCPacketCodec c, SocketChannel sch )
-	throws IOException
-	{
-		return new TCPOSCTransmitter( c, sch );
+	public static OSCTransmitter newUsing(OSCPacketCodec c, SocketChannel sch)
+			throws IOException {
+		return new TCPOSCTransmitter(c, sch);
 	}
 
 	public String getProtocol()
@@ -432,18 +384,15 @@ implements OSCChannel
 	 *
 	 *	@see	InetSocketAddress
 	 */
-	public void setTarget( SocketAddress target )
-	{
-		this.target	= target;
+	public void setTarget(SocketAddress target) {
+		this.target = target;
 	}
-	
-	public void setCodec( OSCPacketCodec c )
-	{
-		this.c	= c;
+
+	public void setCodec(OSCPacketCodec c) {
+		this.c = c;
 	}
-	
-	public OSCPacketCodec getCodec()
-	{
+
+	public OSCPacketCodec getCodec() {
 		return c;
 	}
 	
@@ -482,11 +431,10 @@ implements OSCChannel
 	 *	@see	#isConnected()
 	 */
 	public abstract void connect() throws IOException;
-		
-	protected InetSocketAddress getLocalAddress( InetAddress addr, int port )
-	throws UnknownHostException
-	{
-		return new InetSocketAddress( addr.getHostName().equals( "0.0.0.0" ) ? InetAddress.getLocalHost() : addr, port );
+
+	protected InetSocketAddress getLocalAddress(InetAddress addr, int port)
+			throws UnknownHostException {
+		return new InetSocketAddress(addr.getHostName().equals("0.0.0.0") ? InetAddress.getLocalHost() : addr, port);
 	}
 
 	/**
@@ -510,10 +458,9 @@ implements OSCChannel
 	 *	@throws	IOException	if a write error, OSC encoding error,
 	 *						buffer overflow error or network error occurs
 	 */
-	public final void send( OSCPacket p, SocketAddress target )
-	throws IOException
-	{
-		send( c, p, target );
+	public final void send(OSCPacket p, SocketAddress target)
+			throws IOException {
+		send(c, p, target);
 	}
 
 	/**
@@ -526,10 +473,8 @@ implements OSCChannel
 	 *
 	 *	@throws	IOException	if a write error, OSC encoding error,
 	 *						buffer overflow error or network error occurs
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public abstract void send( OSCPacketCodec c, OSCPacket p, SocketAddress target ) throws IOException;
+	public abstract void send(OSCPacketCodec c, OSCPacket p, SocketAddress target) throws IOException;
 
 	/**
 	 *	Sends an OSC packet (bundle or message) to the default
@@ -546,10 +491,9 @@ implements OSCChannel
 	 *
 	 *	@see	#setTarget( SocketAddress )
 	 */
-	public final void send( OSCPacket p )
-	throws IOException
-	{
-		send( p, target );
+	public final void send(OSCPacket p)
+			throws IOException {
+		send(p, target);
 	}
 
 	/**
@@ -567,32 +511,27 @@ implements OSCChannel
 	 *	@throws	NullPointerException	if no default address was specified
 	 *
 	 *	@see	#setTarget( SocketAddress )
-	 *
-	 *	@since		NetUtil 0.33
 	 */
-	public abstract void send( OSCPacketCodec c, OSCPacket p ) throws IOException;
+	public abstract void send(OSCPacketCodec c, OSCPacket p) throws IOException;
 
-	public void setBufferSize( int size )
-	{
-		synchronized( sync ) {
-			if( bufSize != size ) {
-				bufSize		= size;
-				allocBuf	= true;
+	public void setBufferSize(int size) {
+		synchronized (sync) {
+			if (bufSize != size) {
+				bufSize = size;
+				allocBuf = true;
 			}
 		}
 	}
-	
-	public int getBufferSize()
-	{
-		synchronized( sync ) {
+
+	public int getBufferSize() {
+		synchronized (sync) {
 			return bufSize;
 		}
 	}
 
-	public void dumpOSC( int mode, PrintStream stream )
-	{
-		this.dumpMode		= mode;
-		this.printStream	= stream == null ? System.err : stream;
+	public void dumpOSC(int mode, PrintStream stream) {
+		this.dumpMode = mode;
+		this.printStream = stream == null ? System.err : stream;
 	}
 
 	public void dispose()
@@ -600,74 +539,61 @@ implements OSCChannel
 		byteBuf	= null;
 	}
 
-	// @synchronization	caller must ensure synchronization
-	protected void checkBuffer()
-	{
-		if( allocBuf ) {
-			byteBuf		= ByteBuffer.allocateDirect( bufSize );
-			allocBuf	= false;
+	/** <b>Synchronization:</b>	caller must ensure synchronization */
+	protected void checkBuffer() {
+		if (allocBuf) {
+			byteBuf = ByteBuffer.allocateDirect(bufSize);
+			allocBuf = false;
 		}
 	}
 	
 	protected abstract SelectableChannel getChannel();
 
-//	protected abstract void setChannel( SelectableChannel ch );
-
 	// --------------------- internal classes ---------------------
 
 	private static class UDPOSCTransmitter
-	extends OSCTransmitter
-	{
+			extends OSCTransmitter {
+
 		private DatagramChannel	dch;
-	
-		protected UDPOSCTransmitter( OSCPacketCodec c, InetSocketAddress localAddress )
-		{
-			super( c, UDP, localAddress, true );
+
+		protected UDPOSCTransmitter(OSCPacketCodec c, InetSocketAddress localAddress) {
+			super(c, UDP, localAddress, true);
 		}
 
-		protected UDPOSCTransmitter( OSCPacketCodec c, DatagramChannel dch )
-		{
-			super( c, UDP, new InetSocketAddress( dch.socket().getLocalAddress(), dch.socket().getLocalPort() ), false );
-			
-			this.dch	= dch;
-		}
-	
-//		protected void setChannel( SelectableChannel ch )
-//		{
-//			dch	= (DatagramChannel) ch;
-//		}
+		protected UDPOSCTransmitter(OSCPacketCodec c, DatagramChannel dch) {
+			super(c, UDP, new InetSocketAddress(dch.socket().getLocalAddress(), dch.socket().getLocalPort()), false);
 
-		protected SelectableChannel getChannel()
-		{
-			synchronized( sync ) {
+			this.dch = dch;
+		}
+
+		protected SelectableChannel getChannel() {
+			synchronized (sync) {
 				return dch;
 			}
 		}
-	
-		public InetSocketAddress getLocalAddress() 
-		throws UnknownHostException
-		{
-			synchronized( sync ) {
-				if( dch != null ) {
+
+		public InetSocketAddress getLocalAddress()
+				throws UnknownHostException {
+			synchronized (sync) {
+				if (dch != null) {
 					final DatagramSocket ds = dch.socket();
-					return new InetSocketAddress( ds.getLocalAddress(), ds.getLocalPort() );
+					return new InetSocketAddress(ds.getLocalAddress(), ds.getLocalPort());
 				} else {
-					return getLocalAddress( localAddress.getAddress(), localAddress.getPort() );
+					return getLocalAddress(localAddress.getAddress(), localAddress.getPort());
 				}
 			}
 		}
 
 		public void connect()
-		throws IOException
-		{
-			synchronized( sync ) {
-				if( (dch != null) && !dch.isOpen() ) {
-					if( !revivable ) throw new IOException( NetUtil.getResourceString( "errCannotRevive" ));
+				throws IOException {
+			synchronized (sync) {
+				if ((dch != null) && !dch.isOpen()) {
+					if (!revivable) throw new IOException(NetUtil.getResourceString("errCannotRevive"));
 					dch = null;
 				}
-				if( dch == null ) {
+				if (dch == null) {
 					final DatagramChannel newCh = DatagramChannel.open();
-					newCh.socket().bind( localAddress );
+					newCh.socket().bind(localAddress);
 
 					// Some systems, explicitly Android 7, don't enable SO_BROADCAST by default
 					// for sockets created by DatagramChannel.open(). SO_BROADCAST is needed for
@@ -675,216 +601,192 @@ implements OSCChannel
                                         // We check if it's enabled and  try to set it manually if otherwise.
 					if (!newCh.socket().getBroadcast()) {
 						try {
-							newCh.socket().setBroadcast( true );
-						} catch ( SocketException e ) {
+							newCh.socket().setBroadcast(true);
+						} catch (SocketException e) {
 							// No further action required.
 							// We just can't send broadcast messages.
 						}
 					}
 					dch = newCh;
-					for(OSCConnectionListener l : connListeners) {
+					for (OSCConnectionListener l : connListeners) {
 						l.onDisconnected(localAddress, (InetSocketAddress) target);
 					}
 				}
 			}
 		}
 
-		public boolean isConnected()
-		{
-			synchronized( sync ) {
-				return( (dch != null) && dch.isOpen() );
+		public boolean isConnected() {
+			synchronized (sync) {
+				return ((dch != null) && dch.isOpen());
 			}
 		}
 
-		public void dispose()
-		{
+		public void dispose() {
 			super.dispose();
-			if( dch != null ) {
+			if (dch != null) {
 				try {
 					dch.close();
-				}
-				catch( IOException e1 ) { /* ignored */ }
+				} catch (IOException e1) { /* ignored */ }
 				dch = null;
-				for(OSCConnectionListener l : connListeners) {
+				for (OSCConnectionListener l : connListeners) {
 					l.onDisconnected(localAddress, (InetSocketAddress) target);
 				}
 			}
 		}
 
-		public void send( OSCPacketCodec c, OSCPacket p )
-		throws IOException
-		{
-			send( c, p, target );
+		public void send(OSCPacketCodec c, OSCPacket p)
+				throws IOException {
+			send(c, p, target);
 		}
 
-		public void send( OSCPacketCodec c, OSCPacket p, SocketAddress target )
-		throws IOException
-		{
+		public void send(OSCPacketCodec c, OSCPacket p, SocketAddress target)
+				throws IOException {
 			try {
-				synchronized( sync ) {
-					if( dch == null ) throw new IOException( NetUtil.getResourceString( "errChannelNotConnected" ));
+				synchronized (sync) {
+					if (dch == null) throw new IOException(NetUtil.getResourceString("errChannelNotConnected"));
 
 					checkBuffer();
 					byteBuf.clear();
-					c.encode( p, byteBuf );
+					c.encode(p, byteBuf);
 					byteBuf.flip();
 
-					if( dumpMode != kDumpOff ) {
-						printStream.print( "s: " );
-						if( (dumpMode & kDumpText) != 0 ) OSCPacket.printTextOn( printStream, p );
-						if( (dumpMode & kDumpHex)  != 0 ) {
-							OSCPacket.printHexOn( printStream, byteBuf );
+					if (dumpMode != kDumpOff) {
+						printStream.print("s: ");
+						if ((dumpMode & kDumpText) != 0) OSCPacket.printTextOn(printStream, p);
+						if ((dumpMode & kDumpHex) != 0) {
+							OSCPacket.printHexOn(printStream, byteBuf);
 							byteBuf.flip();
 						}
 					}
-					
-					dch.send( byteBuf, target );
+
+					dch.send(byteBuf, target);
 				}
-			}
-			catch( BufferOverflowException e1 ) {
-				throw new OSCException( OSCException.BUFFER,
-					p instanceof OSCMessage ? ((OSCMessage) p).getName() : p.getClass().getName() );
+			} catch (BufferOverflowException e1) {
+				throw new OSCException(OSCException.BUFFER,
+						p instanceof OSCMessage ? ((OSCMessage) p).getName() : p.getClass().getName());
 			}
 		}
 	}
 
 	private static class TCPOSCTransmitter
-	extends OSCTransmitter
-	{
+			extends OSCTransmitter {
 		private SocketChannel sch;
-	
-		protected TCPOSCTransmitter( OSCPacketCodec c, InetSocketAddress localAddress )
-		{
-			super( c, TCP, localAddress, true );
+
+		protected TCPOSCTransmitter(OSCPacketCodec c, InetSocketAddress localAddress) {
+			super(c, TCP, localAddress, true);
 		}
-		
-		protected TCPOSCTransmitter( OSCPacketCodec c, SocketChannel sch )
-		{
-			super( c, TCP, new InetSocketAddress( sch.socket().getLocalAddress(), sch.socket().getLocalPort() ), false );
-			
-			this.sch	= sch;
-			
-			if( sch.isConnected() ) setTarget( sch.socket().getRemoteSocketAddress() );
+
+		protected TCPOSCTransmitter(OSCPacketCodec c, SocketChannel sch) {
+			super(c, TCP, new InetSocketAddress(sch.socket().getLocalAddress(), sch.socket().getLocalPort()), false);
+
+			this.sch = sch;
+
+			if (sch.isConnected()) setTarget(sch.socket().getRemoteSocketAddress());
 		}
 
 		public InetSocketAddress getLocalAddress()
-		throws UnknownHostException
-		{
-			synchronized( sync ) {
-				if( sch != null ) {
+				throws UnknownHostException {
+			synchronized (sync) {
+				if (sch != null) {
 					final Socket s = sch.socket();
-					return new InetSocketAddress( s.getLocalAddress(), s.getLocalPort() );
+					return new InetSocketAddress(s.getLocalAddress(), s.getLocalPort());
 				} else {
-					return getLocalAddress( localAddress.getAddress(), localAddress.getPort() );
+					return getLocalAddress(localAddress.getAddress(), localAddress.getPort());
 				}
 			}
 		}
 
-		protected void setChannel( SelectableChannel ch )
-		{
-			sch	= (SocketChannel) ch;
+		protected void setChannel(SelectableChannel ch) {
+			sch = (SocketChannel) ch;
 		}
 
-		protected SelectableChannel getChannel()
-		{
-			synchronized( sync ) {
+		protected SelectableChannel getChannel() {
+			synchronized (sync) {
 				return sch;
 			}
 		}
 
 		public void connect()
-		throws IOException
-		{
-			synchronized( sync ) {
-				if( (sch != null) && !sch.isOpen() ) {
-					if( !revivable ) throw new IOException( NetUtil.getResourceString( "errCannotRevive" ));
+				throws IOException {
+			synchronized (sync) {
+				if ((sch != null) && !sch.isOpen()) {
+					if (!revivable) throw new IOException(NetUtil.getResourceString("errCannotRevive"));
 					sch = null;
 				}
-				if( sch == null ) {
+				if (sch == null) {
 					final SocketChannel newCh = SocketChannel.open();
-					newCh.socket().bind( localAddress );
+					newCh.socket().bind(localAddress);
 					sch = newCh;
 				}
-				if( !sch.isConnected() ) {
-					sch.connect( target );
-					for(OSCConnectionListener l : connListeners) {
+				if (!sch.isConnected()) {
+					sch.connect(target);
+					for (OSCConnectionListener l : connListeners) {
 						l.onConnected(localAddress, (InetSocketAddress) target);
 					}
 				}
 			}
 		}
 
-//		protected void disconnect()
-//		throws IOException
-//		{
-//
-//		}
-
-		public boolean isConnected()
-		{
-			synchronized( sync ) {
-				return( (sch != null) && sch.isConnected() );
+		public boolean isConnected() {
+			synchronized (sync) {
+				return ((sch != null) && sch.isConnected());
 			}
 		}
 
-		public void dispose()
-		{
+		public void dispose() {
 			super.dispose();
-			if( sch != null ) {
+			if (sch != null) {
 				try {
 					sch.close();
-				}
-				catch( IOException e1 ) {
+				} catch (IOException e1) {
 					Logger.getLogger("").log(Level.SEVERE, "", e1);
 				}
 				sch = null;
-				for(OSCConnectionListener l : connListeners) {
+				for (OSCConnectionListener l : connListeners) {
 					l.onDisconnected(localAddress, (InetSocketAddress) target);
 				}
 			}
 		}
 
-		public void send( OSCPacketCodec c, OSCPacket p, SocketAddress target )
-		throws IOException
-		{
-			synchronized( sync ) {
-				if( (target != null) && !target.equals( this.target )) throw new IllegalStateException( NetUtil.getResourceString( "errNotBoundToAddress" ) + target );
-				send( c, p );
+		public void send(OSCPacketCodec c, OSCPacket p, SocketAddress target)
+				throws IOException {
+			synchronized (sync) {
+				if ((target != null) && !target.equals(this.target))
+					throw new IllegalStateException(NetUtil.getResourceString("errNotBoundToAddress") + target);
+				send(c, p);
 			}
 		}
 
-		public void send( OSCPacketCodec c, OSCPacket p )
-		throws IOException
-		{
+		public void send(OSCPacketCodec c, OSCPacket p)
+				throws IOException {
 			final int len;
-		
+
 			try {
-				synchronized( sync ) {
-					if( sch == null ) throw new IOException( NetUtil.getResourceString( "errChannelNotConnected" ));
+				synchronized (sync) {
+					if (sch == null) throw new IOException(NetUtil.getResourceString("errChannelNotConnected"));
 
 					checkBuffer();
 					byteBuf.clear();
-					byteBuf.position( 4 );
-					c.encode( p, byteBuf );
+					byteBuf.position(4);
+					c.encode(p, byteBuf);
 					len = byteBuf.position() - 4;
 					byteBuf.flip();
-					byteBuf.putInt( 0, len );
+					byteBuf.putInt(0, len);
 
-					if( dumpMode != kDumpOff ) {
-						printStream.print( "s: " );
-						if( (dumpMode & kDumpText) != 0 ) OSCPacket.printTextOn( printStream, p );
-						if( (dumpMode & kDumpHex)  != 0 ) {
-							OSCPacket.printHexOn( printStream, byteBuf );
+					if (dumpMode != kDumpOff) {
+						printStream.print("s: ");
+						if ((dumpMode & kDumpText) != 0) OSCPacket.printTextOn(printStream, p);
+						if ((dumpMode & kDumpHex) != 0) {
+							OSCPacket.printHexOn(printStream, byteBuf);
 							byteBuf.flip();
 						}
 					}
-					
-					sch.write( byteBuf );
+
+					sch.write(byteBuf);
 				}
-			}
-			catch( BufferOverflowException e1 ) {
-				throw new OSCException( OSCException.BUFFER,
-					p instanceof OSCMessage ? ((OSCMessage) p).getName() : p.getClass().getName() );
+			} catch (BufferOverflowException e1) {
+				throw new OSCException(OSCException.BUFFER,
+						p instanceof OSCMessage ? ((OSCMessage) p).getName() : p.getClass().getName());
 			}
 		}
 	}

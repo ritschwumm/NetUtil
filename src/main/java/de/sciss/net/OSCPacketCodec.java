@@ -1,31 +1,16 @@
 /*
- *  OSCPacketCodec.java
- *  de.sciss.net (NetUtil)
+ *  OSCPacketCodec.scala
+ *  (NetUtil)
  *
- *  Copyright (c) 2004-2013 Hanns Holger Rutz. All rights reserved.
+ *  Copyright (c) 2004-2018 Hanns Holger Rutz. All rights reserved.
  *
- *	This library is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU Lesser General Public
- *	License as published by the Free Software Foundation; either
- *	version 2.1 of the License, or (at your option) any later version.
- *
- *	This library is distributed in the hope that it will be useful,
- *	but WITHOUT ANY WARRANTY; without even the implied warranty of
- *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *	Lesser General Public License for more details.
- *
- *	You should have received a copy of the GNU Lesser General Public
- *	License along with this library; if not, write to the Free Software
- *	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *	This software is published under the GNU Lesser General Public License v2.1+
  *
  *
  *	For further information, please contact Hanns Holger Rutz at
  *	contact@sciss.de
- *
- *
- *  Changelog:
- *		28-Apr-07	created
  */
+
 package de.sciss.net;
 
 import java.io.IOException;
@@ -61,14 +46,9 @@ import java.nio.ByteBuffer;
  *	Last but not least, using the <code>putDecoder</code> and <code>putEncoder</code>
  *	methods, the codec can be extended to support additional Java classes or
  *	OSC typetags, without the need to subclass <code>OSCPacketCodec</code>.
- *
- *  @author		Hanns Holger Rutz
- *  @version	0.36, 18-Feb-09
- *
- *	@since		NetUtil 0.35
  */
-public class OSCPacketCodec
-{
+public class OSCPacketCodec {
+
 	private static final OSCPacketCodec defaultCodec		= new OSCPacketCodec();
 	
 	public static final int		MODE_READ_DOUBLE			= 0x0001;
@@ -154,9 +134,8 @@ public class OSCPacketCodec
 	 *
 	 *	@param	mode	the support mode flag field to use
 	 */
-	public OSCPacketCodec( int mode )
-	{
-		this( mode, "UTF-8" );
+	public OSCPacketCodec(int mode) {
+		this(mode, "UTF-8");
 	}
 	
 	/**
@@ -170,35 +149,30 @@ public class OSCPacketCodec
 	 *					<code>&quot;ISO-8859-1&quot;</code> etc.
 	 *	@see	java.nio.charset.Charset
 	 */
-	public OSCPacketCodec( int mode, String charset )
-	{
+	public OSCPacketCodec(int mode, String charset) {
 		Atom a;
 		int  encIdx = 0;
 		
 		// OSC version 1.0 strict type tag support
 		a = new IntegerAtom();
-		atomDecoders[ a.getTypeTag( null )] = a;
-//		atomEncoders.put( Integer.class, a );
-		atomEncoderC[ encIdx ] = Integer.class;
-		atomEncoderA[ encIdx++ ] = a;
+		atomDecoders[a.getTypeTag(null)] = a;
+		atomEncoderC[encIdx] = Integer.class;
+		atomEncoderA[encIdx++] = a;
 		a = new FloatAtom();
-		atomDecoders[ a.getTypeTag( null )] = a;
-//		atomEncoders.put( Float.class, a );
-		atomEncoderC[ encIdx ] = Float.class;
-		atomEncoderA[ encIdx++ ] = a;
+		atomDecoders[a.getTypeTag(null)] = a;
+		atomEncoderC[encIdx] = Float.class;
+		atomEncoderA[encIdx++] = a;
 		a = new StringAtom();
-		atomDecoders[ a.getTypeTag( null )] = a;
-//		atomEncoders.put( String.class, a );
-		atomEncoderC[ encIdx ] = String.class;
-		atomEncoderA[ encIdx++ ] = a;
+		atomDecoders[a.getTypeTag(null)] = a;
+		atomEncoderC[encIdx] = String.class;
+		atomEncoderA[encIdx++] = a;
 		a = new BlobAtom();
-		atomDecoders[ a.getTypeTag( null )] = a;
-//		atomEncoders.put( byte[].class, a );
-		atomEncoderC[ encIdx ] = byte[].class;
-		atomEncoderA[ encIdx++ ] = a;
-		
-		setStringCharsetCodec( charset );
-		setSupportMode( mode );
+		atomDecoders[a.getTypeTag(null)] = a;
+		atomEncoderC[encIdx] = byte[].class;
+		atomEncoderA[encIdx++] = a;
+
+		setStringCharsetCodec(charset);
+		setSupportMode(mode);
 	}
 	
 	/**
@@ -230,8 +204,7 @@ public class OSCPacketCodec
 	 *						<code>&quot;ISO-8859-1&quot;</code> etc.
 	 *	@see	java.nio.charset.Charset
 	 */
-	public void setStringCharsetCodec( String charsetName )
-	{
+	public void setStringCharsetCodec(String charsetName) {
 		this.charsetName = charsetName;
 	}
 
@@ -247,9 +220,8 @@ public class OSCPacketCodec
 	 *
 	 *	@see	OSCPacketCodec.Atom
 	 */
-	public void putDecoder( byte typeTag, Atom a )
-	{
-		atomDecoders[ typeTag ] = a;
+	public void putDecoder(byte typeTag, Atom a) {
+		atomDecoders[typeTag] = a;
 	}
 	
 	/**
@@ -262,19 +234,18 @@ public class OSCPacketCodec
 	 *
 	 *	@see	OSCPacketCodec.Atom
 	 */
-	public void putEncoder( Class javaClass, Atom a )
-	{
+	public void putEncoder(Class javaClass, Atom a) {
 		int encIdx = 0;
-//		atomEncoders.put( javaClass, a );
-		while( (atomEncoderC[ encIdx ] != javaClass) && (atomEncoderC[ encIdx ] != null) ) encIdx++;
-		if( a != null ) {
-			atomEncoderC[ encIdx ] = javaClass;
-			atomEncoderA[ encIdx ] = a;
-		} else if( atomEncoderC[ encIdx ] != null ) {
+		while ((atomEncoderC[encIdx] != javaClass) && (atomEncoderC[encIdx] != null)) encIdx++;
+		if (a != null) {
+			atomEncoderC[encIdx] = javaClass;
+			atomEncoderA[encIdx] = a;
+		} else if (atomEncoderC[encIdx] != null) {
 			int encIdx2;
-			for( encIdx2 = encIdx + 1; atomEncoderC[ encIdx2 ] != null; encIdx2 ++ ) ;
-			System.arraycopy( atomEncoderC, encIdx + 1, atomEncoderC, encIdx, encIdx2 - encIdx );
-			System.arraycopy( atomEncoderA, encIdx + 1, atomEncoderA, encIdx, encIdx2 - encIdx );
+			encIdx2 = encIdx + 1;
+			while (atomEncoderC[encIdx2] != null) encIdx2++;
+			System.arraycopy(atomEncoderC, encIdx + 1, atomEncoderC, encIdx, encIdx2 - encIdx);
+			System.arraycopy(atomEncoderA, encIdx + 1, atomEncoderA, encIdx, encIdx2 - encIdx);
 		}
 	}
 	
@@ -292,89 +263,78 @@ public class OSCPacketCodec
 	 *
 	 *	@see	#OSCPacketCodec( int )
 	 */
-	public void setSupportMode( int mode )
-	{
+	public void setSupportMode(int mode) {
 		Atom a;
-		
-		switch( mode & MODE_READ_DOUBLE_MASK ) {
-		case MODE_STRICT_V1:
-			atomDecoders[ 0x64 ] = null;	// 'd' double
-			break;
-		case MODE_READ_DOUBLE:
-			atomDecoders[ 0x64 ] = new DoubleAtom();
-			break;
-		case MODE_READ_DOUBLE_AS_FLOAT:
-			atomDecoders[ 0x64 ] = new DoubleAsFloatAtom();
-			break;
-		default:
-			throw new IllegalArgumentException( String.valueOf( mode ));
-		}
-		
-		switch( mode & MODE_READ_LONG_MASK ) {
-		case MODE_STRICT_V1:
-			atomDecoders[ 0x68 ] = null;	// 'h' long
-			break;
-		case MODE_READ_LONG:
-			atomDecoders[ 0x68 ] = new LongAtom();
-			break;
-		case MODE_READ_LONG_AS_INTEGER:
-			atomDecoders[ 0x68 ] = new LongAsIntegerAtom();
-			break;
-		default:
-			throw new IllegalArgumentException( String.valueOf( mode ));
+
+		switch (mode & MODE_READ_DOUBLE_MASK) {
+			case MODE_STRICT_V1:
+				atomDecoders[0x64] = null;    // 'd' double
+				break;
+			case MODE_READ_DOUBLE:
+				atomDecoders[0x64] = new DoubleAtom();
+				break;
+			case MODE_READ_DOUBLE_AS_FLOAT:
+				atomDecoders[0x64] = new DoubleAsFloatAtom();
+				break;
+			default:
+				throw new IllegalArgumentException(String.valueOf(mode));
 		}
 
-		switch( mode & MODE_WRITE_DOUBLE_MASK ) {
-		case MODE_STRICT_V1:
-//			atomEncoders.remove( Double.class );
-			putEncoder( Double.class, null );
-			break;
-		case MODE_WRITE_DOUBLE:
-//			atomEncoders.put( Double.class, new DoubleAtom() );
-			putEncoder( Double.class, new DoubleAtom() );
-			break;
-		case MODE_WRITE_DOUBLE_AS_FLOAT:
-//			atomEncoders.put( Double.class, new DoubleAsFloatAtom() );
-			putEncoder( Double.class, new DoubleAsFloatAtom() );
-			break;
-		default:
-			throw new IllegalArgumentException( String.valueOf( mode ));
+		switch (mode & MODE_READ_LONG_MASK) {
+			case MODE_STRICT_V1:
+				atomDecoders[0x68] = null;    // 'h' long
+				break;
+			case MODE_READ_LONG:
+				atomDecoders[0x68] = new LongAtom();
+				break;
+			case MODE_READ_LONG_AS_INTEGER:
+				atomDecoders[0x68] = new LongAsIntegerAtom();
+				break;
+			default:
+				throw new IllegalArgumentException(String.valueOf(mode));
 		}
-		
-		switch( mode & MODE_WRITE_LONG_MASK ) {
-		case MODE_STRICT_V1:
-//			atomEncoders.remove( Long.class );
-			putEncoder( Long.class, null );
-			break;
-		case MODE_WRITE_LONG:
-//			atomEncoders.put( Long.class, new LongAtom() );
-			putEncoder( Long.class, new LongAtom() );
-			break;
-		case MODE_WRITE_LONG_AS_INTEGER:
-//			atomEncoders.put( Long.class, new LongAsIntegerAtom() );
-			putEncoder( Long.class, new LongAsIntegerAtom() );
-			break;
-		default:
-			throw new IllegalArgumentException( String.valueOf( mode ));
+
+		switch (mode & MODE_WRITE_DOUBLE_MASK) {
+			case MODE_STRICT_V1:
+				putEncoder(Double.class, null);
+				break;
+			case MODE_WRITE_DOUBLE:
+				putEncoder(Double.class, new DoubleAtom());
+				break;
+			case MODE_WRITE_DOUBLE_AS_FLOAT:
+				putEncoder(Double.class, new DoubleAsFloatAtom());
+				break;
+			default:
+				throw new IllegalArgumentException(String.valueOf(mode));
 		}
-		
-		if( (mode & MODE_READ_SYMBOL_AS_STRING) != 0 ) {
-			atomDecoders[ 0x53 ] = new StringAtom();	// 'S' symbol
+
+		switch (mode & MODE_WRITE_LONG_MASK) {
+			case MODE_STRICT_V1:
+				putEncoder(Long.class, null);
+				break;
+			case MODE_WRITE_LONG:
+				putEncoder(Long.class, new LongAtom());
+				break;
+			case MODE_WRITE_LONG_AS_INTEGER:
+				putEncoder(Long.class, new LongAsIntegerAtom());
+				break;
+			default:
+				throw new IllegalArgumentException(String.valueOf(mode));
+		}
+
+		if ((mode & MODE_READ_SYMBOL_AS_STRING) != 0) {
+			atomDecoders[0x53] = new StringAtom();    // 'S' symbol
 		} else {
-			atomDecoders[ 0x53 ] = null;
+			atomDecoders[0x53] = null;
 		}
 
-		if( (mode & MODE_WRITE_PACKET_AS_BLOB) != 0 ) {
+		if ((mode & MODE_WRITE_PACKET_AS_BLOB) != 0) {
 			a = new PacketAtom();
-//			atomEncoders.put( OSCBundle.class, a );
-//			atomEncoders.put( OSCMessage.class, a );
-			putEncoder( OSCBundle.class, a );
-			putEncoder( OSCMessage.class, a );
+			putEncoder(OSCBundle	.class, a);
+			putEncoder(OSCMessage	.class, a);
 		} else {
-//			atomEncoders.remove( OSCBundle.class );
-//			atomEncoders.remove( OSCMessage.class );
-			putEncoder( OSCBundle.class, null );
-			putEncoder( OSCMessage.class, null );
+			putEncoder(OSCBundle	.class, null);
+			putEncoder(OSCMessage	.class, null);
 		}
 	}
 	
@@ -405,17 +365,16 @@ public class OSCPacketCodec
 	 *										method to read past the buffer limit
 	 *  @throws IllegalArgumentException	occurs in some cases of buffer underflow
 	 */
-	public OSCPacket decode( ByteBuffer b )
-	throws IOException
-	{
-		final String command = readString( b );
-		skipToAlign( b );
-        
-        if( command.equals( OSCBundle.TAG )) {
-			return decodeBundle( b );
-        } else {
-        	return decodeMessage( command, b );
-        }
+	public OSCPacket decode(ByteBuffer b)
+			throws IOException {
+		final String command = readString(b);
+		skipToAlign(b);
+
+		if (command.equals(OSCBundle.TAG)) {
+			return decodeBundle(b);
+		} else {
+			return decodeMessage(command, b);
+		}
 	}
 	
 	/**
@@ -433,13 +392,12 @@ public class OSCPacketCodec
 	 *  @throws IOException					in case some of the
 	 *										writing procedures failed.
 	 */
-	public void encode( OSCPacket p, ByteBuffer b )
-	throws IOException
-	{
-		if( p instanceof OSCBundle ) {
-			encodeBundle( (OSCBundle) p, b );
+	public void encode(OSCPacket p, ByteBuffer b)
+			throws IOException {
+		if (p instanceof OSCBundle) {
+			encodeBundle((OSCBundle) p, b);
 		} else {
-			encodeMessage( (OSCMessage) p, b );
+			encodeMessage((OSCMessage) p, b);
 		}
 	}
 
@@ -454,24 +412,22 @@ public class OSCPacketCodec
 	 *	 
 	 *  @throws IOException if an error occurs during the calculation
 	 */
-	public int getSize( OSCPacket p )
-	throws IOException
-	{
-		if( p instanceof OSCBundle ) {
-			return getBundleSize( (OSCBundle) p );
+	public int getSize(OSCPacket p)
+			throws IOException {
+		if (p instanceof OSCBundle) {
+			return getBundleSize((OSCBundle) p);
 		} else {
-			return getMessageSize( (OSCMessage) p );
+			return getMessageSize((OSCMessage) p);
 		}
 	}
-	
-	protected int getBundleSize( OSCBundle bndl )
-	throws IOException
-	{
-		synchronized( bndl.collPackets ) {
+
+	protected int getBundleSize(OSCBundle bndl)
+			throws IOException {
+		synchronized (bndl.collPackets) {
 			int result = bndlIdentifier.length + 8 + (bndl.collPackets.size() << 2); // name, timetag, size of each bundle element
 
-			for( int i = 0; i < bndl.collPackets.size(); i++ ) {
-				result += getSize( ((OSCPacket) bndl.collPackets.get( i )));
+			for (int i = 0; i < bndl.collPackets.size(); i++) {
+				result += getSize(bndl.collPackets.get(i));
 			}
 
 			return result;
@@ -485,54 +441,48 @@ public class OSCPacketCodec
 	 *
 	 *	@throws IOException	if the message contains invalid arguments
 	 */
-	protected int getMessageSize( OSCMessage msg )
-	throws IOException
-	{
+	protected int getMessageSize(OSCMessage msg)
+			throws IOException {
+
 		final int	numArgs = msg.getArgCount();
 		int			result  = ((msg.getName().length() + 4) & ~3) + ((1+numArgs + 4) & ~3);
 		Object		o;
 		Class		cl;
-//		Class		oldCl	= null;
-//		Atom		a		= null;
 		int			j;
-		
-		for( int i = 0; i < numArgs; i++ ) {
-			o	= msg.getArg( i );
-			cl	= o.getClass();
-			j	= 0;
+
+		for (int i = 0; i < numArgs; i++) {
+			o 	= msg.getArg(i);
+			cl 	= o.getClass();
+			j 	= 0;
 			try {
-				while( atomEncoderC[ j ] != cl ) j++;
-//				a = (Atom) atomEncoders.get( cl );
-//				result += a.getAtomSize( o );
-				result += atomEncoderA[ j ].getAtomSize( o );
-			}
-			catch( NullPointerException e1 ) {
-				throw new OSCException( OSCException.JAVACLASS, cl.getName() );
+				while (atomEncoderC[j] != cl) j++;
+				result += atomEncoderA[j].getAtomSize(o);
+
+			} catch (NullPointerException e1) {
+				throw new OSCException(OSCException.JAVACLASS, cl.getName());
 			}
 		}
 		
 		return result;
 	}
 
-	protected OSCBundle decodeBundle( ByteBuffer b )
-	throws IOException
-	{
-		final OSCBundle	bndl        = new OSCBundle();
-		final int		totalLimit  = b.limit();
+	protected OSCBundle decodeBundle(ByteBuffer b)
+			throws IOException {
 
-		bndl.setTimeTagRaw( b.getLong() );
+		final OSCBundle bndl = new OSCBundle();
+		final int totalLimit = b.limit();
+
+		bndl.setTimeTagRaw(b.getLong());
 
 		try {
-			while( b.hasRemaining() ) {
-				b.limit( b.getInt() + b.position() );   // msg size
-//				bndl.addPacket( OSCPacket.decode( b, m ));
-				bndl.addPacket( decode( b ));
-				b.limit( totalLimit );
+			while (b.hasRemaining()) {
+				b.limit(b.getInt() + b.position());   // msg size
+				bndl.addPacket(decode(b));
+				b.limit(totalLimit);
 			}
 			return bndl;
-		}
-		catch( IllegalArgumentException e1 ) {	// throws by b.limit if bundle size is corrupted
-			throw new OSCException( OSCException.FORMAT, e1.getLocalizedMessage() );
+		} catch (IllegalArgumentException e1) {    // throws by b.limit if bundle size is corrupted
+			throw new OSCException(OSCException.FORMAT, e1.getLocalizedMessage());
 		}
 	}
 
@@ -560,57 +510,49 @@ public class OSCPacketCodec
 	 *										method to read past the buffer limit
 	 *  @throws IllegalArgumentException	occurs in some cases of buffer underflow
 	 */
-	protected OSCMessage decodeMessage( String command, ByteBuffer b )
-	throws IOException
-	{	
+	protected OSCMessage decodeMessage(String command, ByteBuffer b)
+			throws IOException {
+
 		final Object[]		args;
 		final int			numArgs;
 		final ByteBuffer	b2;
 		final int			pos1;
-//		int					pos1, pos2;
 		byte				typ	= 0;
-		
-		if( b.get() != 0x2C ) throw new OSCException( OSCException.FORMAT, null );
-		b2		= b.slice();	// faster to slice than to reposition all the time!
-		pos1	= b.position();
-//		b2.position( pos1 );
-//		pos1	= b.position();
-//		OSCPacket.skipToValues( b );
-		while( b.get() != 0x00 ) ;
-		numArgs	= b.position() - pos1 - 1;
-		args	= new Object[ numArgs ];
-		skipToAlign( b );
-//		pos2	= (b.position() + 3) & ~3;
-	
+
+		if (b.get() != 0x2C) throw new OSCException(OSCException.FORMAT, null);
+		b2 = b.slice();    // faster to slice than to reposition all the time!
+		pos1 = b.position();
+		while (b.get() != 0x00) ;
+		numArgs = b.position() - pos1 - 1;
+		args = new Object[numArgs];
+		skipToAlign(b);
+
 		try {
-			for( int argIdx = 0; argIdx < numArgs; argIdx++ ) {
+			for (int argIdx = 0; argIdx < numArgs; argIdx++) {
 				typ = b2.get();
-//				if( typ == 0 ) break;
-				args[ argIdx ] = atomDecoders[ typ ].decodeAtom( typ, b );
+				args[argIdx] = atomDecoders[typ].decodeAtom(typ, b);
 			}
-		} catch (NullPointerException e1 ) {
-			throw new OSCException( OSCException.TYPETAG, String.valueOf( (char) typ ));
+		} catch (NullPointerException e1) {
+			throw new OSCException(OSCException.TYPETAG, String.valueOf((char) typ));
 		}
-//System.err.println( "done. numArgs = "+args.length );
-		return new OSCMessage( command, args );
+		return new OSCMessage(command, args);
 	}
-	
-	protected void encodeBundle( OSCBundle bndl, ByteBuffer b )
-	throws IOException
-	{
+
+	protected void encodeBundle(OSCBundle bndl, ByteBuffer b)
+			throws IOException {
 		int	pos1, pos2;
 
-		b.put( bndlIdentifier ).putLong( bndl.getTimeTag() );
-		
-		synchronized( bndl.collPackets ) {
-			for( int i = 0; i < bndl.collPackets.size(); i++ ) {
+		b.put(bndlIdentifier).putLong(bndl.getTimeTag());
+
+		synchronized (bndl.collPackets) {
+			for (int i = 0; i < bndl.collPackets.size(); i++) {
 				b.mark();
-				b.putInt( 0 );			// calculate size later
+				b.putInt(0);            // calculate size later
 				pos1 = b.position();
-				encode( (OSCPacket) bndl.collPackets.get( i ), b );
+				encode(bndl.collPackets.get(i), b);
 				pos2 = b.position();
 				b.reset();
-				b.putInt( pos2 - pos1 ).position( pos2 );			
+				b.putInt(pos2 - pos1).position(pos2);
 			}
 		}
 	}
@@ -630,40 +572,37 @@ public class OSCPacketCodec
 	 *								writing procedures failed
 	 *								(buffer overflow, illegal arguments).
 	 */
-	protected void encodeMessage( OSCMessage msg, ByteBuffer b )
-	throws BufferOverflowException, IOException
-	{
+	protected void encodeMessage(OSCMessage msg, ByteBuffer b)
+			throws BufferOverflowException, IOException {
+
 		final int			numArgs = msg.getArgCount(); // args.length;
 		final ByteBuffer	b2;
-//		int					pos1, pos2;
 		int					j;
 		Object				o		= null;
 		Class				cl		= null;
-//		Class				oldCl	= null;
 		Atom				a		= null;
-		
-		b.put( msg.getName().getBytes() );
-		terminateAndPadToAlign( b );
+
+		b.put(msg.getName().getBytes());
+		terminateAndPadToAlign(b);
 		// it's important to slice at a 4-byte boundary because
 		// the position will become 0 and terminateAndPadToAlign
 		// will be malfunctioning otherwise
-		b2		= b.slice();
-		b2.put( (byte) 0x2C );		// ',' to announce type string
-		b.position( b.position() + ((numArgs + 5) & ~3) );	// comma + numArgs + zero + align
+		b2 = b.slice();
+		b2.put((byte) 0x2C);        // ',' to announce type string
+		b.position(b.position() + ((numArgs + 5) & ~3));    // comma + numArgs + zero + align
 		try {
-			for( int i = 0; i < numArgs; i++ ) {
-				o	= msg.getArg( i );
-				cl	= o.getClass();
-				j	= 0;
-				while( atomEncoderC[ j ] != cl ) j++;
-				a	= atomEncoderA[ j ];
-				a.encodeAtom( o, b2, b );
+			for (int i = 0; i < numArgs; i++) {
+				o = msg.getArg(i);
+				cl = o.getClass();
+				j = 0;
+				while (atomEncoderC[j] != cl) j++;
+				a = atomEncoderA[j];
+				a.encodeAtom(o, b2, b);
 			}
+		} catch (NullPointerException e1) {
+			throw new OSCException(OSCException.JAVACLASS, o == null ? "null" : cl == null ? "null" : cl.getName());
 		}
-		catch( NullPointerException e1 ) {
-			throw new OSCException( OSCException.JAVACLASS, o == null ? "null" : cl.getName() );
-		}
-		terminateAndPadToAlign( b2 );
+		terminateAndPadToAlign(b2);
 	}
 
 	/**
@@ -677,17 +616,15 @@ public class OSCPacketCodec
 	 *  @throws BufferUnderflowException	in case the string exceeds
 	 *										the provided buffer limit
 	 */
-	public static String readString( ByteBuffer b )
-	{
+	public static String readString(ByteBuffer b) {
 		final int		pos = b.position();
 		final byte[]	bytes;
-//		int len = 1;
-		while( b.get() != 0 ) ; // len++;
+		while (b.get() != 0) ; // len++;
 		final int len = b.position() - pos;
-		bytes = new byte[ len ];
-		b.position( pos );
-		b.get( bytes );
-		return new String( bytes, 0, len - 1 );
+		bytes = new byte[len];
+		b.position(pos);
+		b.get(bytes);
+		return new String(bytes, 0, len - 1);
 	}
 
 	/**
@@ -703,9 +640,8 @@ public class OSCPacketCodec
 	 *  @throws BufferOverflowException		in case the padding exceeds
 	 *										the provided buffer limit
 	 */
-	public static void terminateAndPadToAlign( ByteBuffer b )
-	{
-		b.put( pad, 0, 4 - (b.position() & 0x03) );
+	public static void terminateAndPadToAlign(ByteBuffer b) {
+		b.put(pad, 0, 4 - (b.position() & 0x03));
 	}
 	
 	/**
@@ -736,11 +672,10 @@ public class OSCPacketCodec
 	 *  @throws IllegalArgumentException	in case the skipping exceeds
 	 *										the provided buffer limit
 	 */
-	public static void skipToValues( ByteBuffer b )
-	throws BufferUnderflowException
-	{
-		while( b.get() != 0x00 ) ;
-		b.position( (b.position() + 3) & ~3 );
+	public static void skipToValues(ByteBuffer b)
+			throws BufferUnderflowException {
+		while (b.get() != 0x00) ;
+		b.position((b.position() + 3) & ~3);
 	}
 
 	/**
@@ -754,13 +689,10 @@ public class OSCPacketCodec
 	 *  @throws IllegalArgumentException	in case the skipping exceeds
 	 *										the provided buffer limit
 	 */
-	public static void skipToAlign( ByteBuffer b )
-	{
-        b.position( (b.position() + 3) & ~3 );
+	public static void skipToAlign(ByteBuffer b) {
+		b.position((b.position() + 3) & ~3);
 	}
 
-	// abstract class is a bit faster than interface!
-//	public static interface Atom
 	/**
 	 * 	The <code>Atom</code> class represents a combination of
 	 * 	an encoder and decoder of a Java respectively OSC atom.
@@ -810,340 +742,265 @@ public class OSCPacketCodec
 	 *	@see	OSCPacketCodec#putDecoder( byte, de.sciss.net.OSCPacketCodec.Atom )
 	 *	@see	OSCPacketCodec#putEncoder( java.lang.Class, de.sciss.net.OSCPacketCodec.Atom ) 
 	 */
-	public static abstract class Atom
-	{
-		public abstract Object decodeAtom( byte typeTag, ByteBuffer b ) throws IOException;
-		public abstract void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db ) throws IOException;
-		public abstract byte getTypeTag( Object o );
-		public abstract int getAtomSize( Object o ) throws IOException;
+	public static abstract class Atom {
+		public abstract Object decodeAtom(byte typeTag, ByteBuffer b) throws IOException;
+
+		public abstract void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db) throws IOException;
+
+		public abstract byte getTypeTag(Object o);
+
+		public abstract int getAtomSize(Object o) throws IOException;
 	}
-	
+
 	private class IntegerAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected IntegerAtom() { /* empty */ }
-		
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-// requires Java 1.5+
-//			return Integer.valueOf( b.getInt() );
-			return new Integer( b.getInt() );
+
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			return b.getInt();
 		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x69 );	// 'i'
-			db.putInt( ((Integer) o).intValue() );
+
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x69);    // 'i'
+			db.putInt((Integer) o);
 		}
-		
-		public byte getTypeTag( Object o )
-		{
-			return 0x69;	// 'i'
+
+		public byte getTypeTag(Object o) {
+			return 0x69;    // 'i'
 		}
-		
-		public int getAtomSize( Object o )
-		throws IOException
-		{
+
+		public int getAtomSize(Object o)
+				throws IOException {
 			return 4;
 		}
 	}
 
 	private class FloatAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected FloatAtom() { /* empty */ }
 
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-//			 requires Java 1.5+
-//			return Float.valueOf( b.getFloat() );
-			return new Float( b.getFloat() );
-		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x66 );	// 'f'
-			db.putFloat( ((Float) o).floatValue() );
-		}
-		
-		public byte getTypeTag( Object o )
-		{
-			return 0x66;	// 'f'
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			return b.getFloat();
 		}
 
-		public int getAtomSize( Object o )
-		throws IOException
-		{
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x66);    // 'f'
+			db.putFloat((Float) o);
+		}
+
+		public byte getTypeTag(Object o) {
+			return 0x66;    // 'f'
+		}
+
+		public int getAtomSize(Object o)
+				throws IOException {
 			return 4;
 		}
 	}
 
 	private class LongAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected LongAtom() { /* empty */ }
 
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-//			 requires Java 1.5+
-//			return Long.valueOf( b.getLong() );
-			return new Long( b.getLong() );
-		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x68 );	// 'h'
-			db.putLong( ((Long) o).longValue() );
-		}
-		
-		public byte getTypeTag( Object o )
-		{
-			return 0x68;	// 'h'
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			return b.getLong();
 		}
 
-		public int getAtomSize( Object o )
-		throws IOException
-		{
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x68);    // 'h'
+			db.putLong((Long) o);
+		}
+
+		public byte getTypeTag(Object o) {
+			return 0x68;    // 'h'
+		}
+
+		public int getAtomSize(Object o)
+				throws IOException {
 			return 8;
 		}
 	}
 
 	private class DoubleAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected DoubleAtom() { /* empty */ }
 
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-//			 requires Java 1.5+
-//			return Double.valueOf( b.getDouble() );
-			return new Double( b.getDouble() );
-		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x64 );	// 'd'
-			db.putDouble( ((Double) o).doubleValue() );
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			return b.getDouble();
 		}
 
-		public byte getTypeTag( Object o )
-		{
-			return 0x64;	// 'd'
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x64);    // 'd'
+			db.putDouble((Double) o);
 		}
 
-		public int getAtomSize( Object o )
-		throws IOException
-		{
+		public byte getTypeTag(Object o) {
+			return 0x64;    // 'd'
+		}
+
+		public int getAtomSize(Object o)
+				throws IOException {
 			return 8;
 		}
 	}
 
 	private class DoubleAsFloatAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected DoubleAsFloatAtom() { /* empty */ }
 
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-//			 requires Java 1.5+
-//			return Float.valueOf( (float) b.getDouble() );
-			return new Float( b.getDouble() );
-		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x66 );	// 'f'
-			db.putFloat( ((Double) o).floatValue() );
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			return (float) b.getDouble();
 		}
 
-		public byte getTypeTag( Object o )
-		{
-			return 0x66;	// 'f'
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x66);    // 'f'
+			db.putFloat(((Double) o).floatValue());
 		}
 
-		public int getAtomSize( Object o )
-		throws IOException
-		{
+		public byte getTypeTag(Object o) {
+			return 0x66;    // 'f'
+		}
+
+		public int getAtomSize(Object o)
+				throws IOException {
 			return 4;
 		}
 	}
 
 	private class LongAsIntegerAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected LongAsIntegerAtom() { /* empty */ }
-		
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-//			 requires Java 1.5+
-//			return Integer.valueOf( (int) b.getLong() );
-			return new Integer( (int) b.getLong() );
-		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x69 );	// 'i'
-			db.putInt( ((Long) o).intValue() );
+
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			return (int) b.getLong();
 		}
 
-		public byte getTypeTag( Object o )
-		{
-			return 0x69;	// 'i'
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x69);    // 'i'
+			db.putInt(((Long) o).intValue());
 		}
 
-		public int getAtomSize( Object o )
-		throws IOException
-		{
+		public byte getTypeTag(Object o) {
+			return 0x69;    // 'i'
+		}
+
+		public int getAtomSize(Object o)
+				throws IOException {
 			return 4;
 		}
 	}
 
 	private class StringAtom
-//	implements Atom
-	extends Atom
-	{
-//		private String		lastString;
-////		private ByteBuffer	lastBuf;
-//		private byte[]		lastBuf;
-		
+			extends Atom {
+
 		protected StringAtom() { /* empty */ }
 
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-			final int		pos1	= b.position();
-//			final int		lim		= b.limit();
-			final String	s;
-			final int		pos2;
-			final byte[]	bytes; 
-			final int		len;
-			while( b.get() != 0 ) ;
-			pos2	= b.position() - 1;
-//			b.limit( pos2 - 1 );
-			b.position( pos1 );
-//final byte[] test = new byte[ b.limit() - pos ];
-//b.get( test );
-//s = new String( test );
-//			s = charsetDecoder.decode( b ).toString();
-			len		= pos2 - pos1;
-			bytes	= new byte[ len ];
-			b.get( bytes, 0, len );
-			s		= new String( bytes, charsetName );
-//			b.limit( lim );
-			b.position( (pos2 + 4) & ~3 );
-//			skipToAlign( b );
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			final int pos1 = b.position();
+			final String s;
+			final int pos2;
+			final byte[] bytes;
+			final int len;
+			while (b.get() != 0) ;
+			pos2 = b.position() - 1;
+			b.position(pos1);
+			len = pos2 - pos1;
+			bytes = new byte[len];
+			b.get(bytes, 0, len);
+			s = new String(bytes, charsetName);
+			b.position((pos2 + 4) & ~3);
 			return s;
 		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x73 );					// 's'
-			final String s = (String) o;			// cassting seems tp be faster tan toString()!
-			db.put( s.getBytes( charsetName ));		// faster than using Charset or CharsetEncoder
-			terminateAndPadToAlign( db );
-		}
-		
-		public byte getTypeTag( Object o )
-		{
-			return 0x73;	// 's'
+
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x73);                    // 's'
+			final String s = (String) o;            // cassting seems tp be faster tan toString()!
+			db.put(s.getBytes(charsetName));        // faster than using Charset or CharsetEncoder
+			terminateAndPadToAlign(db);
 		}
 
-		public int getAtomSize( Object o )
-		throws IOException
-		{
+		public byte getTypeTag(Object o) {
+			return 0x73;    // 's'
+		}
+
+		public int getAtomSize(Object o)
+				throws IOException {
 			final String s = (String) o;
-			return( (s.getBytes( charsetName ).length + 4) & ~3 );
+			return ((s.getBytes(charsetName).length + 4) & ~3);
 		}
 	}
 
 	private class BlobAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected BlobAtom() { /* empty */ }
 
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-			final byte[] blob = new byte[ b.getInt() ];
-			b.get( blob );
-			skipToAlign( b );
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			final byte[] blob = new byte[b.getInt()];
+			b.get(blob);
+			skipToAlign(b);
 			return blob;
 		}
-		
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
+
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
 			final byte[] blob = (byte[]) o;
-			tb.put( (byte) 0x62 );	// 'b'
-			db.putInt( blob.length );
-			db.put( blob );
-			padToAlign( db );
+			tb.put((byte) 0x62);    // 'b'
+			db.putInt(blob.length);
+			db.put(blob);
+			padToAlign(db);
 		}
 
-		public byte getTypeTag( Object o )
-		{
-			return 0x62;	// 'b'
+		public byte getTypeTag(Object o) {
+			return 0x62;    // 'b'
 		}
 
-		public int getAtomSize( Object o )
-		throws IOException
-		{
-			return( (((byte[]) o).length + 7) & ~3 );
+		public int getAtomSize(Object o)
+				throws IOException {
+			return ((((byte[]) o).length + 7) & ~3);
 		}
 	}
 
 	private class PacketAtom
-//	implements Atom
-	extends Atom
-	{
+			extends Atom {
 		protected PacketAtom() { /* empty */ }
 
-		public Object decodeAtom( byte typeTag, ByteBuffer b )
-		throws IOException
-		{
-			throw new IOException( "Not supported" );
+		public Object decodeAtom(byte typeTag, ByteBuffer b)
+				throws IOException {
+			throw new IOException("Not supported");
 		}
 
-		public void encodeAtom( Object o, ByteBuffer tb, ByteBuffer db )
-		throws IOException
-		{
-			tb.put( (byte) 0x62 );	// 'b'
+		public void encodeAtom(Object o, ByteBuffer tb, ByteBuffer db)
+				throws IOException {
+			tb.put((byte) 0x62);    // 'b'
 			final int pos = db.position();
 			final int pos2 = pos + 4;
-			db.position( pos2 );
-			encode( (OSCPacket) o, db ); // XXX
-			db.putInt( pos, db.position() - pos2 );
+			db.position(pos2);
+			encode((OSCPacket) o, db); // XXX
+			db.putInt(pos, db.position() - pos2);
 		}
 
-		public byte getTypeTag( Object o )
-		{
-			return 0x62;	// 'b'
+		public byte getTypeTag(Object o) {
+			return 0x62;    // 'b'
 		}
-		
-		public int getAtomSize( Object o )
-		throws IOException
-		{
-			return( getSize( (OSCPacket) o ) + 4 );
+
+		public int getAtomSize(Object o)
+				throws IOException {
+			return (getSize((OSCPacket) o) + 4);
 		}
 	}
 }

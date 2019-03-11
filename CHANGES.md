@@ -4,6 +4,10 @@ In the course of the development of NetUtil, some API changes were made. General
 
 This document tries to help updating code that uses old versions of NetUtil.
 
+## v1.1.0 (Mar 2019)
+
+- add OSCConnectionListener
+
 ## v0.39 (jun 2011 - SVN rev. 23)</h4>
 
 - OSCClient and OSCTransmitter creation: socket's IP defaults to "0.0.0.0" now instead of InetAddress.getLocalHost(). Allegedly that was responsible for an issue on Android.
