@@ -25,6 +25,7 @@ import java.util.Random;
 import de.sciss.net.OSCBundle;
 import de.sciss.net.OSCChannel;
 import de.sciss.net.OSCClient;
+import de.sciss.net.OSCConnectionListener;
 import de.sciss.net.OSCListener;
 import de.sciss.net.OSCMessage;
 import de.sciss.net.OSCReceiver;
@@ -132,7 +133,17 @@ public abstract class NetUtilTest {
             return;
         }
 
-        c.addOSCListener(new OSCListener() {
+		c.addConnectionListener(new OSCConnectionListener() {
+			public void onConnected(InetSocketAddress local, InetSocketAddress remote) {
+				postln("onConnected - remote = " + remote);
+			}
+
+			public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
+				postln("onDisconnected - remote = " + remote);
+			}
+		});
+
+		c.addOSCListener(new OSCListener() {
             public void messageReceived(OSCMessage m, SocketAddress addr, long time) {
                 try {
                     postln("send " + addr);
@@ -151,7 +162,9 @@ public abstract class NetUtilTest {
                         sync.notifyAll();
                     }
                 } else if (m.getName().equals("/dumpOSC")) {
-                    c.dumpOSC(((Number) m.getArg(0)).intValue(), System.err);
+                	Object arg0 = m.getArgCount() > 0 ? m.getArg(0) : null;
+                	int mode = (arg0 instanceof Number) ? ((Number) arg0).intValue() : 1;
+                    c.dumpOSC(mode, System.err);
                 }
             }
         });

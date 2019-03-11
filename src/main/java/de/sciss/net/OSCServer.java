@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *	This class dynamically groups together a transmitters and receivers, allowing bidirectional
@@ -580,7 +579,12 @@ public abstract class OSCServer
 				rcv.setChannel(trns.getChannel());
 			}
 			rcv.startListening();
-			for (OSCConnectionListener l : connListeners) {
+			final OSCConnectionListener[] arrConn;
+			synchronized (connListeners) {
+				arrConn = new OSCConnectionListener[connListeners.size()];
+				connListeners.toArray(arrConn);
+			}
+			for (OSCConnectionListener l : arrConn) {
 				l.onConnected(localAddress, null);
 			}
 		}
@@ -588,7 +592,12 @@ public abstract class OSCServer
 		public void stop()
 				throws IOException {
 			rcv.stopListening();
-			for (OSCConnectionListener l : connListeners) {
+			final OSCConnectionListener[] arrConn;
+			synchronized (connListeners) {
+				arrConn = new OSCConnectionListener[connListeners.size()];
+				connListeners.toArray(arrConn);
+			}
+			for (OSCConnectionListener l : arrConn) {
 				l.onDisconnected(localAddress, null);
 			}
 		}
@@ -610,7 +619,13 @@ public abstract class OSCServer
 		public void dispose() {
 			rcv	.dispose();
 			trns.dispose();
-			for (OSCConnectionListener l : connListeners) {
+			final OSCConnectionListener[] arrConn;
+			synchronized (connListeners) {
+				arrConn = new OSCConnectionListener[connListeners.size()];
+				connListeners.toArray(arrConn);
+				connListeners.clear();
+			}
+			for (OSCConnectionListener l : arrConn) {
 				l.onDisconnected(localAddress, null);
 			}
 		}
@@ -751,17 +766,17 @@ public abstract class OSCServer
 								threadSync.wait(5000);
 							}
 						} catch (InterruptedException e2) {
-							Logger.getLogger("").log(Level.WARNING, "", e2);
+							NetUtil.log(Level.WARNING, "", e2);
 						} catch (IOException e1) {
-							Logger.getLogger("").log(Level.WARNING, "", e1);
+							NetUtil.log(Level.WARNING, "", e1);
 							throw e1;
 						} finally {
 							if ((thread != null) && thread.isAlive()) {
 								try {
-									Logger.getLogger("").log(Level.WARNING, "TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")");
+									NetUtil.log(Level.WARNING, "TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")");
 									ssch.close();     // rude task killing
 								} catch (IOException e3) {
-									Logger.getLogger("").log(Level.SEVERE, "TCPServerBody.stopListening 2: ", e3);
+									NetUtil.log(Level.SEVERE, "TCPServerBody.stopListening 2: ", e3);
 								}
 							}
 							thread = null;
@@ -904,16 +919,21 @@ public abstract class OSCServer
 
 								@Override
 								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
-									mapRcv.remove(remote);
-									for (OSCConnectionListener l : connListeners) {
+									synchronized (connSync) {
+										mapRcv.remove(remote);
+									}
+									final OSCConnectionListener[] arrConn;
+									synchronized (connListeners) {
+										arrConn = new OSCConnectionListener[connListeners.size()];
+										connListeners.toArray(arrConn);
+									}
+									for (OSCConnectionListener l : arrConn) {
 										l.onDisconnected(local, remote);
 									}
 								}
 
 								@Override
-								public void onConnected(InetSocketAddress local, InetSocketAddress remote) {
-
-								}
+								public void onConnected(InetSocketAddress local, InetSocketAddress remote) {}
 							});
 
 							trns = OSCTransmitter.newUsing(defaultCodec, sch);
@@ -924,8 +944,15 @@ public abstract class OSCServer
 
 								@Override
 								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
-									mapTrns.remove(remote);
-									for (OSCConnectionListener l : connListeners) {
+									synchronized (connSync) {
+										mapTrns.remove(remote);
+									}
+									final OSCConnectionListener[] arrConn;
+									synchronized (connListeners) {
+										arrConn = new OSCConnectionListener[connListeners.size()];
+										connListeners.toArray(arrConn);
+									}
+									for (OSCConnectionListener l : arrConn) {
 										l.onDisconnected(local, remote);
 									}
 								}
@@ -943,12 +970,12 @@ public abstract class OSCServer
 						}
 					} catch (ClosedChannelException e11) {    // bye bye, we have to quit
 						if (isListening) {
-							Logger.getLogger("").log(Level.WARNING, "", e11);
+							NetUtil.log(Level.WARNING, "", e11);
 						}
 						return;
 					} catch (IOException e1) {
 						if (isListening) {
-							Logger.getLogger("").log(Level.WARNING, "", e1);
+							NetUtil.log(Level.WARNING, "", e1);
 						}
 					}
 				} // while( isListening )

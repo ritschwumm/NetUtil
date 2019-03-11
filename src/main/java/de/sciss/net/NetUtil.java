@@ -15,6 +15,8 @@ package de.sciss.net;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import de.sciss.net.test.NetUtilTest;
 
@@ -28,6 +30,16 @@ public class NetUtil {
 	private static final ResourceBundle resBundle = ResourceBundle.getBundle("NetUtilStrings");
 
 	private NetUtil() { /* empty */ }
+
+	private static final Logger logger = Logger.getLogger("NetUtil");
+
+	public static void log(Level level, String msg, Throwable thrown) {
+		logger.log(level, msg, thrown);
+	}
+
+	public static void log(Level level, String msg) {
+		logger.log(level, msg);
+	}
 
 	/**
 	 *	This method gets called when one tries

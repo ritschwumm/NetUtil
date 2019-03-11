@@ -30,12 +30,11 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *  A class that sends OSC packets (messages
  *	or bundles) to a target OSC server. Each instance takes
- *	a network channel, either explictly specified by a
+ *	a network channel, either explicitly specified by a
  *	<code>DatagramChannel</code> (for UDP) or <code>SocketChannel</code> (for TCP),
  *	or internally opened when a protocol type is specified.
  *	<P>
@@ -45,7 +44,7 @@ import java.util.logging.Logger;
  *	<P>
  *	<B>Note that as of v0.3,</B> you will most likely want to use preferably one of <code>OSCClient</code> or <code>OSCServer</code>
  *	over <code>OSCTransmitter</code>. Also note that as of v0.3, <code>OSCTransmitter</code> is abstract, which
- *	renders direct instantiation impossible. <B>To update old code,</B> occurences of <code>new OSCTransmitter()</code>
+ *	renders direct instantiation impossible. <B>To update old code,</B> occurrences of <code>new OSCTransmitter()</code>
  *	must be replaced by one of the <code>OSCTransmitter.newUsing</code> methods!
  *
  *	<b>Synchronization</b>	sending messages is thread safe
@@ -586,6 +585,7 @@ public abstract class OSCTransmitter
 
 		public void connect()
 				throws IOException {
+			final OSCConnectionListener[] arrConn;
 			synchronized (sync) {
 				if ((dch != null) && !dch.isOpen()) {
 					if (!revivable) throw new IOException(NetUtil.getResourceString("errCannotRevive"));
@@ -608,9 +608,18 @@ public abstract class OSCTransmitter
 						}
 					}
 					dch = newCh;
-					for (OSCConnectionListener l : connListeners) {
-						l.onDisconnected(localAddress, (InetSocketAddress) target);
+					synchronized (connListeners) {
+						arrConn = new OSCConnectionListener[connListeners.size()];
+						connListeners.toArray(arrConn);
 					}
+				} else {
+					arrConn = null;
+				}
+			}
+			if (arrConn != null) {
+				final InetSocketAddress targetI = (target instanceof InetSocketAddress) ? (InetSocketAddress) target : null;
+				for (OSCConnectionListener l : arrConn) {
+					l.onDisconnected(localAddress, targetI);
 				}
 			}
 		}
@@ -628,8 +637,15 @@ public abstract class OSCTransmitter
 					dch.close();
 				} catch (IOException e1) { /* ignored */ }
 				dch = null;
-				for (OSCConnectionListener l : connListeners) {
-					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				final InetSocketAddress targetI = (target instanceof InetSocketAddress) ? (InetSocketAddress) target : null;
+				final OSCConnectionListener[] arrConn;
+				synchronized (connListeners) {
+					arrConn = new OSCConnectionListener[connListeners.size()];
+					connListeners.toArray(arrConn);
+					connListeners.clear();
+				}
+				for (OSCConnectionListener l : arrConn) {
+					l.onDisconnected(localAddress, targetI);
 				}
 			}
 		}
@@ -708,6 +724,7 @@ public abstract class OSCTransmitter
 
 		public void connect()
 				throws IOException {
+			final OSCConnectionListener[] arrConn;
 			synchronized (sync) {
 				if ((sch != null) && !sch.isOpen()) {
 					if (!revivable) throw new IOException(NetUtil.getResourceString("errCannotRevive"));
@@ -720,9 +737,18 @@ public abstract class OSCTransmitter
 				}
 				if (!sch.isConnected()) {
 					sch.connect(target);
-					for (OSCConnectionListener l : connListeners) {
-						l.onConnected(localAddress, (InetSocketAddress) target);
+					synchronized (connListeners) {
+						arrConn = new OSCConnectionListener[connListeners.size()];
+						connListeners.toArray(arrConn);
 					}
+				} else {
+					arrConn = null;
+				}
+			}
+			if (arrConn != null) {
+				final InetSocketAddress targetI = (target instanceof InetSocketAddress) ? (InetSocketAddress) target : null;
+				for (OSCConnectionListener l : arrConn) {
+					l.onConnected(localAddress, targetI);
 				}
 			}
 		}
@@ -739,11 +765,18 @@ public abstract class OSCTransmitter
 				try {
 					sch.close();
 				} catch (IOException e1) {
-					Logger.getLogger("").log(Level.SEVERE, "", e1);
+					NetUtil.log(Level.SEVERE, "", e1);
 				}
 				sch = null;
-				for (OSCConnectionListener l : connListeners) {
-					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				final InetSocketAddress targetI = (target instanceof InetSocketAddress) ? (InetSocketAddress) target : null;
+				final OSCConnectionListener[] arrConn;
+				synchronized (connListeners) {
+					arrConn = new OSCConnectionListener[connListeners.size()];
+					connListeners.toArray(arrConn);
+					connListeners.clear();
+				}
+				for (OSCConnectionListener l : arrConn) {
+					l.onDisconnected(localAddress, targetI);
 				}
 			}
 		}

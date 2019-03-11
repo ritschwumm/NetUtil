@@ -32,7 +32,6 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *  An <code>OSCReceiver</code> manages reception
@@ -666,14 +665,14 @@ public abstract class OSCReceiver
 							threadSync.wait(5000);
 						}
 					} catch (InterruptedException e2) {
-						Logger.getLogger("").log(Level.INFO, "", e2);
+						NetUtil.log(Level.INFO, "", e2);
 					} finally {
 						if ((thread != null) && thread.isAlive()) {
 							try {
-								Logger.getLogger("").log(Level.INFO, "OSCReceiver.stopListening : rude task killing (" + this.hashCode() + ")");
+								NetUtil.log(Level.INFO, "OSCReceiver.stopListening : rude task killing (" + this.hashCode() + ")");
 								closeChannel();
 							} catch (IOException e3) {
-								Logger.getLogger("").log(Level.INFO, "", e3);
+								NetUtil.log(Level.INFO, "", e3);
 							}
 						}
 						thread = null;
@@ -715,7 +714,12 @@ public abstract class OSCReceiver
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		collListeners.clear();
+		synchronized (collListeners) {
+			collListeners.clear();
+		}
+		synchronized (connListeners) {
+			connListeners.clear();
+		}
 		byteBuf = null;
 	}
 
@@ -749,7 +753,7 @@ public abstract class OSCReceiver
 
 		} catch (BufferUnderflowException e1) {
 			if (isListening) {
-				Logger.getLogger("").log(Level.SEVERE, "", e1);
+				NetUtil.log(Level.SEVERE, "", e1);
 			}
 		}
 	}
@@ -769,10 +773,13 @@ public abstract class OSCReceiver
 	}
 
 	private void dispatchMessage(OSCMessage msg, SocketAddress sender, long time) {
+		final OSCListener[] arrListeners;
 		synchronized (collListeners) {
-			for (OSCListener listener : collListeners) {
-				listener.messageReceived(msg, sender, time);
-			}
+			arrListeners = new OSCListener[collListeners.size()];
+			collListeners.toArray(arrListeners);
+		}
+		for (OSCListener listener : arrListeners) {
+			listener.messageReceived(msg, sender, time);
 		}
 	}
 
@@ -880,6 +887,7 @@ public abstract class OSCReceiver
 
 		public void connect()
 				throws IOException {
+			final OSCConnectionListener[] arrConn;
 			synchronized (generalSync) {
 				if (isListening) throw new IllegalStateException(NetUtil.getResourceString("errNotWhileActive"));
 
@@ -893,9 +901,14 @@ public abstract class OSCReceiver
 //					dch = newCh;
 					setChannel(newCh);
 				}
-				for (OSCConnectionListener l : connListeners) {
-					l.onConnected(localAddress, (InetSocketAddress) target);
+				synchronized (connListeners) {
+					arrConn = new OSCConnectionListener[connListeners.size()];
+					connListeners.toArray(arrConn);
 				}
+			}
+			final InetSocketAddress targetI = (target instanceof InetSocketAddress) ? (InetSocketAddress) target : null;
+			for (OSCConnectionListener l : arrConn) {
+				l.onConnected(localAddress, targetI);
 			}
 		}
 
@@ -938,12 +951,12 @@ public abstract class OSCReceiver
 						flipDecodeDispatch(sender);
 					} catch (ClosedChannelException e1) {    // bye bye, we have to quit
 						if (isListening) {
-							Logger.getLogger("").log(Level.WARNING, "", e1);
+							NetUtil.log(Level.WARNING, "", e1);
 						}
 						return;
 					} catch (IOException e1) {
 						if (isListening) {
-							Logger.getLogger("").log(Level.WARNING, "", e1);
+							NetUtil.log(Level.WARNING, "", e1);
 						}
 					}
 				} // while( isListening )
@@ -952,8 +965,14 @@ public abstract class OSCReceiver
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
 				}
-				for (OSCConnectionListener l : connListeners) {
-					l.onDisconnected(localAddress, (InetSocketAddress) target);
+				final OSCConnectionListener[] arrConn;
+				synchronized (connListeners) {
+					arrConn = new OSCConnectionListener[connListeners.size()];
+					connListeners.toArray(arrConn);
+				}
+				final InetSocketAddress targetI = (target instanceof InetSocketAddress) ? (InetSocketAddress) target : null;
+				for (OSCConnectionListener l : arrConn) {
+					l.onDisconnected(localAddress, targetI);
 				}
 			}
 		}
@@ -1020,6 +1039,7 @@ public abstract class OSCReceiver
 
 		public void connect()
 				throws IOException {
+			final OSCConnectionListener[] arrConn;
 			synchronized (generalSync) {
 				if (isListening) throw new IllegalStateException(NetUtil.getResourceString("errNotWhileActive"));
 
@@ -1035,9 +1055,14 @@ public abstract class OSCReceiver
 				if (!sch.isConnected()) {
 					sch.connect(target);
 				}
-				for (OSCConnectionListener l : connListeners) {
-					l.onConnected(localAddress, (InetSocketAddress) target);
+				synchronized (connListeners) {
+					arrConn = new OSCConnectionListener[connListeners.size()];
+					connListeners.toArray(arrConn);
 				}
+			}
+			final InetSocketAddress targetI = (target instanceof InetSocketAddress) ? (InetSocketAddress) target : null;
+			for (OSCConnectionListener l : arrConn) {
+				l.onConnected(localAddress, targetI);
 			}
 		}
 
@@ -1088,16 +1113,16 @@ public abstract class OSCReceiver
 					} catch (IllegalArgumentException e1) {    // thrown on illegal byteBuf.limit() calls
 						if (isListening) {
 							final OSCException e2 = new OSCException(OSCException.RECEIVE, e1.toString());
-							Logger.getLogger("").log(Level.WARNING, "", e2);
+							NetUtil.log(Level.WARNING, "", e2);
 						}
 					} catch (ClosedChannelException e1) {    // bye bye, we have to quit
 						if (isListening) {
-							Logger.getLogger("").log(Level.WARNING, "", e1);
+							NetUtil.log(Level.WARNING, "", e1);
 						}
 						return;
 					} catch (IOException e1) {
 						if (isListening) {
-							Logger.getLogger("").log(Level.WARNING, "", e1);
+							NetUtil.log(Level.WARNING, "", e1);
 						}
 					}
 				}

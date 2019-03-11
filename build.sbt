@@ -3,14 +3,14 @@ def basicJavaOpts = Seq("-source", "1.6")
 lazy val root = project.withId("netutil").in(file("."))
   .settings(
     name             := "NetUtil",
-    version          := "1.1.0-SNAPSHOT",
+    version          := "1.1.0",
     organization     := "de.sciss",
     description      := "A Java library for sending and receiving messages using the OpenSoundControl (OSC) protocol",
     homepage         := Some(url(s"https://git.iem.at/sciss/${name.value}")),
     licenses         := Seq("LGPL v2.1+" -> url("http://www.gnu.org/licenses/lgpl-2.1.txt")),
     javacOptions                   := basicJavaOpts ++ Seq("-encoding", "utf8", "-Xlint:unchecked", "-target", "1.6"),
     javacOptions in (Compile, doc) := basicJavaOpts,  // does not accept `-encoding` or `target`
-    scalaVersion     := "2.12.7",  // this is just a Java only project
+    scalaVersion     := "2.12.8",  // this is just a Java only project
     crossPaths       := false,     // this is just a Java only project
     autoScalaLibrary := false,     // this is just a Java only project
     // we are using Scala for testing only
