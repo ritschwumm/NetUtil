@@ -496,6 +496,14 @@ implements OSCBidi
 		rcv.removeOSCListener( listener );
 	}
 
+	public void addConnectionListener(OSCConnectionListener e) {
+		rcv.addConnectionListener(e);
+	}
+
+	public void removeConnectionListener(OSCConnectionListener o) {
+		rcv.removeConnectionListener(o);
+	}
+
 	/**
 	 *	Starts the client. This calls <code>connect</code> if the transport requires
 	 *	connectivity (e.g. TCP) and the channel is not yet connected.

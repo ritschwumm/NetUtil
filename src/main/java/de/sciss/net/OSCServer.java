@@ -42,10 +42,14 @@ import java.nio.channels.NotYetConnectedException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *	This class dynamically groups together a transmitters and receivers, allowing bidirectional
@@ -168,6 +172,7 @@ import java.util.Map;
 public abstract class OSCServer
 implements OSCBidi
 {
+	protected final List<OSCConnectionListener>         connListeners   = new ArrayList<OSCConnectionListener>();
 	protected OSCPacketCodec	defaultCodec;
 	private final String		protocol;
 
@@ -455,6 +460,8 @@ implements OSCBidi
 	 *						if no client connection for the given address exists
 	 */
 	public abstract void send( OSCPacket p, SocketAddress target ) throws IOException;
+	
+	public abstract void sendAll( OSCPacket p) throws IOException;
 
 	/**
 	 *  Registers a listener that gets informed
@@ -473,6 +480,18 @@ implements OSCBidi
 	 *						the list of notified objects.
 	 */
 	public abstract void removeOSCListener( OSCListener listener );
+
+	public void addConnectionListener(OSCConnectionListener e) {
+		synchronized (connListeners) {
+			connListeners.add(e);
+		}
+	}
+
+	public void removeConnectionListener(OSCConnectionListener o) {
+		synchronized (connListeners) {
+			connListeners.remove(o);
+		}
+	}
 
 	/**
 	 *	Starts the server. The server becomes
@@ -570,12 +589,13 @@ implements OSCBidi
 
 		private final OSCReceiver		rcv;
 		private final OSCTransmitter	trns;
+		private final InetSocketAddress localAddress;
 
 		protected UDPOSCServer( OSCPacketCodec c, InetSocketAddress localAddress )
 		throws IOException
 		{
 			super( c, UDP );
-		
+			this.localAddress = localAddress;
 			rcv		= OSCReceiver.newUsing( c, UDP, localAddress );
 			trns	= OSCTransmitter.newUsing( c, UDP, localAddress );
 		}
@@ -623,12 +643,18 @@ implements OSCBidi
 				rcv.setChannel( trns.getChannel() );
 			}
 			rcv.startListening();
+			for(OSCConnectionListener l : connListeners) {
+				l.onConnected(localAddress, null);
+			}
 		}
 
 		public void stop()
 		throws IOException
 		{
 			rcv.stopListening();
+			for(OSCConnectionListener l : connListeners) {
+				l.onDisconnected(localAddress, null);
+			}
 		}
 		
 		public boolean isActive()
@@ -647,10 +673,18 @@ implements OSCBidi
 //			return rcv.getChannel();
 //		}
 		
+		@Override
+		public void sendAll(OSCPacket p) throws IOException {
+			throw new UnsupportedOperationException();
+		}
+
 		public void dispose()
 		{
 			rcv.dispose();
 			trns.dispose();
+			for(OSCConnectionListener l : connListeners) {
+				l.onDisconnected(localAddress, null);
+			}
 		}
 
 		public void setBufferSize( int size )
@@ -679,10 +713,10 @@ implements OSCBidi
 	extends OSCServer
 	implements Runnable, OSCListener
 	{
-		private final Map					mapRcv			= new HashMap();	// key = SocketAddress (remote), value = OSCReceiver
-		private final Map					mapTrns			= new HashMap();	// key = SocketAddress (remote), value = OSCTransmitter
+		private final Map<SocketAddress, OSCReceiver>					mapRcv			= new HashMap<SocketAddress, OSCReceiver>();	// key = SocketAddress (remote), value = OSCReceiver
+		private final Map<SocketAddress, OSCTransmitter>					mapTrns			= new HashMap<SocketAddress, OSCTransmitter>();	// key = SocketAddress (remote), value = OSCTransmitter
 
-		private final List					collListeners   = new ArrayList();
+		private final List<OSCListener>					collListeners   = new ArrayList<OSCListener>();
 		private Thread						thread			= null;
 		private final Object				startStopSync	= new Object();		// mutual exclusion startListening / stopListening
 		private final Object				threadSync		= new Object();		// communication with receiver thread
@@ -737,7 +771,7 @@ implements OSCBidi
 		{
 			OSCTransmitter trns;
 			synchronized( connSync ) {
-				for( Iterator iter = mapTrns.values().iterator(); iter.hasNext(); ) {
+				for( Iterator<OSCTransmitter> iter = mapTrns.values().iterator(); iter.hasNext(); ) {
 					trns = (OSCTransmitter) iter.next();
 					if( trns.getCodec() == defaultCodec ) {
 						trns.setCodec( c );
@@ -803,32 +837,24 @@ implements OSCBidi
 								guard = SocketChannel.open();
 								guard.connect( ssch.socket().getLocalSocketAddress() );
 								guard.close();
-//								try {
-//								
-//								}
-//								finally {
-//									try { guard.close(); } catch( IOException e1 ) {}
-//								}
-//								guard.send( guardPacket );
 								threadSync.wait( 5000 );
 							}
 						}
 						catch( InterruptedException e2 ) {
-							System.err.println( e2.getLocalizedMessage() );
+							Logger.getLogger("").log(Level.WARNING,"",e2);
 						}
 						catch( IOException e1 ) {
-							System.err.println( "TCPServerBody.stopListening : "+e1 );
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 							throw e1;
 						}
 						finally {
-//							guard = null;
 							if( (thread != null) && thread.isAlive() ) {
 								try {
-									System.err.println( "TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")" );
+									Logger.getLogger("").log(Level.WARNING,"TCPServerBody.stopListening : rude task killing (" + this.hashCode() + ")");
 									ssch.close();     // rude task killing
 								}
 								catch( IOException e3 ) {
-									System.err.println( "TCPServerBody.stopListening 2: "+e3 );
+									Logger.getLogger("").log(Level.SEVERE,"TCPServerBody.stopListening 2: ",e3);
 								}
 							}
 							thread = null;
@@ -851,17 +877,33 @@ implements OSCBidi
 			
 			synchronized( connSync ) {
 				trns = (OSCTransmitter) mapTrns.get( target );
+				if( trns == null ) throw new NotYetConnectedException();
+				else if(!trns.isConnected()) {
+					mapTrns.remove(target);
+					throw new NotYetConnectedException();
+				}
 			}
-			if( trns == null ) throw new NotYetConnectedException();
 		
 			trns.send( p );
 		}
+		
 		
 //		protected SelectableChannel getChannel()
 //		{
 //			return ssch;
 //		}
 		
+		@Override
+		public void sendAll(OSCPacket p) throws IOException {
+			for(OSCTransmitter t:mapTrns.values()) {
+				try {
+					t.send(p);
+				} catch (Exception e) {
+					continue;
+				}
+			}
+		}
+
 		public void dispose()
 		{
 			try {
@@ -880,12 +922,12 @@ implements OSCBidi
 		private void stopAll()
 		{
 			synchronized( connSync ) {
-				for( Iterator iter = mapRcv.values().iterator(); iter.hasNext(); ) {
-					((OSCReceiver) iter.next()).dispose();
+				for(OSCReceiver r:new LinkedList<OSCReceiver>(mapRcv.values())) {
+					r.dispose();
 				}
 				mapRcv.clear();
-				for( Iterator iter = mapTrns.values().iterator(); iter.hasNext(); ) {
-					((OSCTransmitter) iter.next()).dispose();
+				for(OSCTransmitter t:new LinkedList<OSCTransmitter>(mapTrns.values())) {
+					t.dispose();
 				}
 				mapTrns.clear();
 			}
@@ -896,10 +938,10 @@ implements OSCBidi
 			synchronized( connSync ) {
 				bufSize = size;
 	
-				for( Iterator iter = mapRcv.values().iterator(); iter.hasNext(); ) {
+				for( Iterator<OSCReceiver> iter = mapRcv.values().iterator(); iter.hasNext(); ) {
 					((OSCReceiver) iter.next()).setBufferSize( size );
 				}
-				for( Iterator iter = mapTrns.values().iterator(); iter.hasNext(); ) {
+				for( Iterator<OSCTransmitter> iter = mapTrns.values().iterator(); iter.hasNext(); ) {
 					((OSCTransmitter) iter.next()).setBufferSize( size );
 				}
 			}
@@ -918,7 +960,7 @@ implements OSCBidi
 				inMode		= mode;
 				inStream	= stream;
 				
-				for( Iterator iter = mapRcv.values().iterator(); iter.hasNext(); ) {
+				for( Iterator<OSCReceiver> iter = mapRcv.values().iterator(); iter.hasNext(); ) {
 					((OSCReceiver) iter.next()).dumpOSC( mode, stream );
 				}
 			}
@@ -930,7 +972,7 @@ implements OSCBidi
 				outMode		= mode;
 				outStream	= stream;
 
-				for( Iterator iter = mapTrns.values().iterator(); iter.hasNext(); ) {
+				for( Iterator<OSCTransmitter> iter = mapTrns.values().iterator(); iter.hasNext(); ) {
 					((OSCTransmitter) iter.next()).dumpOSC( mode, stream );
 				}
 			}
@@ -954,13 +996,47 @@ listen:			while( isListening )
 						sender	= sch.socket().getRemoteSocketAddress();
 						
 						synchronized( connSync ) {
+							InetSocketAddress local = (InetSocketAddress) sch.getLocalAddress();
+							InetSocketAddress remote = (InetSocketAddress) sch.getRemoteAddress();
+							for(OSCConnectionListener l : connListeners) {
+								l.onConnected(local, remote);
+							}
 							rcv		= OSCReceiver.newUsing( defaultCodec, sch );
 							rcv.setBufferSize( bufSize );
 							mapRcv.put( sender, rcv );
+							rcv.addConnectionListener(new OSCConnectionListener() {
+								
+								@Override
+								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
+									mapRcv.remove(remote);
+									for(OSCConnectionListener l : connListeners) {
+										l.onDisconnected(local, remote);
+									}
+								}
+								
+								@Override
+								public void onConnected(InetSocketAddress local, InetSocketAddress remote) {
+									
+								}
+							});
 							trns	= OSCTransmitter.newUsing( defaultCodec, sch );
 							trns.setBufferSize( bufSize );
-//System.err.println ("put "+sender );
 							mapTrns.put( sender, trns );
+							trns.addConnectionListener(new OSCConnectionListener() {
+								
+								@Override
+								public void onDisconnected(InetSocketAddress local, InetSocketAddress remote) {
+									mapTrns.remove(remote);
+									for(OSCConnectionListener l : connListeners) {
+										l.onDisconnected(local, remote);
+									}
+								}
+								
+								@Override
+								public void onConnected(InetSocketAddress local, InetSocketAddress remote) {
+									
+								}
+							});
 							rcv.dumpOSC( inMode, inStream );
 							trns.dumpOSC( outMode, outStream );
 							rcv.addOSCListener( this );
@@ -969,13 +1045,13 @@ listen:			while( isListening )
 					}
 					catch( ClosedChannelException e11 ) {	// bye bye, we have to quit
 						if( isListening ) {
-							System.err.println( e11 );
+							Logger.getLogger("").log(Level.WARNING,"",e11);
 						}
 						return;
 					}
 					catch( IOException e1 ) {
 						if( isListening ) {
-							System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 						}
 					}
 				} // while( isListening )

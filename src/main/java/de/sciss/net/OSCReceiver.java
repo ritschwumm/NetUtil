@@ -64,6 +64,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 //import java.util.Map;
 
 /**
@@ -184,7 +186,8 @@ import java.util.List;
 public abstract class OSCReceiver
 implements OSCChannel, Runnable
 {
-	private final List					collListeners   = new ArrayList();
+	private   final List<OSCListener>					collListeners   = new ArrayList<OSCListener>();
+	protected final List<OSCConnectionListener>         connListeners   = new ArrayList<OSCConnectionListener>();
 	protected Thread					thread			= null;
 
 //	private Map							map				= null;
@@ -616,7 +619,7 @@ implements OSCChannel, Runnable
 	public void addOSCListener( OSCListener listener )
 	{
 		synchronized( collListeners ) {
-//			if( collListeners.contains( listener )) return;
+			if( collListeners.contains( listener )) return;
 			collListeners.add( listener );
 		}
 	}
@@ -632,6 +635,18 @@ implements OSCChannel, Runnable
 	{
 		synchronized( collListeners ) {
 			collListeners.remove( listener );
+		}
+	}
+
+	public void addConnectionListener(OSCConnectionListener e) {
+		synchronized (connListeners) {
+			connListeners.add(e);
+		}
+	}
+
+	public void removeConnectionListener(OSCConnectionListener o) {
+		synchronized (connListeners) {
+			connListeners.remove(o);
 		}
 	}
 
@@ -721,7 +736,7 @@ implements OSCChannel, Runnable
 						}
 					}
 					catch( InterruptedException e2 ) {
-						e2.printStackTrace();
+						Logger.getLogger("").log(Level.INFO,"",e2);
 					}
 //					catch( IOException e1 ) {
 //						System.err.println( "OSCReceiver.stopListening : "+e1 );
@@ -730,13 +745,12 @@ implements OSCChannel, Runnable
 					finally {
 						if( (thread != null) && thread.isAlive() ) {
 							try {
-								System.err.println( "OSCReceiver.stopListening : rude task killing (" + this.hashCode() + ")" );
+								Logger.getLogger("").log(Level.INFO,  "OSCReceiver.stopListening : rude task killing (" + this.hashCode() + ")" );
 //								ch.close();     // rude task killing
 								closeChannel();
 							}
 							catch( IOException e3 ) {
-								e3.printStackTrace();
-//								System.err.println( "OSCReceiver.stopListening 2: "+e3 );
+								Logger.getLogger("").log(Level.INFO,"",e3);
 							}
 						}
 						thread = null;
@@ -844,7 +858,7 @@ implements OSCChannel, Runnable
 		}
 		catch( BufferUnderflowException e1 ) {
 			if( isListening ) {
-				System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
+				Logger.getLogger("").log(Level.SEVERE, "", e1);
 			}
 		}
 	}
@@ -1006,6 +1020,9 @@ implements OSCChannel, Runnable
 //					dch = newCh;
 					setChannel( newCh );
 				}
+				for(OSCConnectionListener l : connListeners) {
+					l.onConnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 
@@ -1054,13 +1071,13 @@ listen:			while( isListening )
 					catch( ClosedChannelException e1 ) {	// bye bye, we have to quit
 						if( isListening ) {
 //							System.err.println( e1 );
-							System.err.println( "OSCReceiver.run : " + e1.getClass().getName() + " : " + e1.getLocalizedMessage() );
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 						}
 						return;
 					}
 					catch( IOException e1 ) {
 						if( isListening ) {
-							System.err.println( "OSCReceiver.run : " + e1.getClass().getName() + " : " + e1.getLocalizedMessage() );
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 //							System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
 						}
 					}
@@ -1070,6 +1087,9 @@ listen:			while( isListening )
 				synchronized( threadSync ) {
 					thread = null;
 					threadSync.notifyAll();   // stopListening() might be waiting
+				}
+				for(OSCConnectionListener l : connListeners) {
+					l.onDisconnected(localAddress, (InetSocketAddress) target);
 				}
 			}
 		}
@@ -1158,6 +1178,9 @@ listen:			while( isListening )
 				if( !sch.isConnected() ) {
 					sch.connect( target );
 				}
+				for(OSCConnectionListener l : connListeners) {
+					l.onConnected(localAddress, (InetSocketAddress) target);
+				}
 			}
 		}
 
@@ -1173,9 +1196,7 @@ listen:			while( isListening )
 		{
 			if( sch != null ) {
 				try {
-//System.err.println( "TCPOSCReceiver.closeChannel()" );
 					sch.close();
-//System.err.println( "...ok" );
 				}
 				finally {
 					sch = null;
@@ -1215,19 +1236,18 @@ listen:			while( isListening ) {
 						if( isListening ) {
 //							System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
 							final OSCException e2 = new OSCException( OSCException.RECEIVE, e1.toString() );
-							System.err.println( "OSCReceiver.run : " + e2.getClass().getName() + " : " + e2.getLocalizedMessage() );
+							Logger.getLogger("").log(Level.WARNING,"",e2);
 						}
 					}
 					catch( ClosedChannelException e1 ) {	// bye bye, we have to quit
 						if( isListening ) {
-							System.err.println( "OSCReceiver.run : " + e1.getClass().getName() + " : " + e1.getLocalizedMessage() );
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 						}
 						return;
 					}
 					catch( IOException e1 ) {
 						if( isListening ) {
-							System.err.println( "OSCReceiver.run : " + e1.getClass().getName() + " : " + e1.getLocalizedMessage() );
-//							System.err.println( new OSCException( OSCException.RECEIVE, e1.toString() ));
+							Logger.getLogger("").log(Level.WARNING,"",e1);
 						}
 					}
 				}
