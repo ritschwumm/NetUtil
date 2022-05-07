@@ -140,8 +140,7 @@ public class OSCMessage
 	 *  @return		the number of typed arguments in the message.
 	 *				e.g. for [ "/n_go", 1001, 0, -1, -1, 0 ] it returns 5.
 	 */
-	public int getArgCount()
-	{
+	public int getArgCount() {
 		return args.length;
 	}
 	
